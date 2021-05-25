@@ -1,0 +1,28 @@
+html{
+    height: 100%;
+}
+
+
+
+body {
+    height: 100%;
+    background: rgb(70, 184, 167);
+    background: radial-gradient(
+        circle,
+        rgba(70, 184, 167, 1) 0%,
+        rgba(55, 80, 219, 1) 100%
+    );
+}
+
+.jumbotron {
+    background: rgb(2,0,36);
+    background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 47%, rgba(0,212,255,1) 100%);
+}
+
+h1 {
+    color: white;
+}
+
+.lead{
+    color: white;
+}
