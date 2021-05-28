@@ -16,10 +16,54 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 
   </head>
-  <body>
-    <div class="jumbotron jumbotron-fluid">
+  <body >
+    
+    <div class = "top">
+     
+      <h1 class="display-2">Ether Bet</h1>
+
+      <a class="btn-getbalance" href="#">
+        <span onclick="hide(); return false">get Balance</span>
+      </a>
+
+      <a class="btn-connectwallet" href="#">
+        <span onclick="hide(); return false">Connect Wallet</span>
+      </a>
+     
+      <p style="color:white">The best place to double your money</p>
+    </div>
+   
+    <div class="box">
+      <h1 class="display-4">Place bet</h1>
+      <div class="input-group mb-3">
+        <input type="number" class="form-control" id="name_input" placeholder="Place your bet" >
+      
+      </div>
+      <div class="bet-output">
+        <div>
+          Your bet is : <span id="age_output"></span>
+        </div>
+      </div>
+      
+    </div>
+    <p></p>
+    <div>
+      <a class="btn" href="#">
+        <span onclick="hide(); return false">Place Bet</span>
+      </a>
+      <p></p>
+      <a class="btn" href="#">
+        <span onclick="hide(); return false">Flip the coin</span>
+      </a>
+    
+     
+    </div>
+   
+    
+    <!-- <div class="jumbotron jumbotron-fluid">
       <div class="container">
         <h1 class="display-4">Bit Bet</h1>
         <p class="lead">Bet your bitcoins to double your money</p>
@@ -42,7 +86,7 @@
       <div>
      
       </div>
-    </div>
+    </div> -->
 
 
   </body>

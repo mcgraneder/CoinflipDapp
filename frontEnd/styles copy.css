@@ -1,0 +1,80 @@
+html{
+    height: 100%;
+}
+
+
+
+body {
+    height: 100%;
+    background: rgb(70, 184, 167);
+    background: radial-gradient(
+        circle,
+        rgba(70, 184, 167, 1) 0%,
+        rgba(55, 80, 219, 1) 100%
+    );
+}
+
+.box {
+    background: #262626;
+    top: 50%;
+    left: 50%;
+    transform: translate(75%, 30%);
+   
+    width: 600px;
+    height: 500px;
+    top: 20%;
+    left: -50%;
+  
+   
+    border: 4px solid transparent;
+    border-image: linear-gradient(45deg, #ff0, #f0f, #f00, #00f, #0f0);
+    border-image-slice: 1;
+    border-radius: 25px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    
+    /* background: #262626;
+    top: 50%;
+    left: 50%;
+    transform: translate(75%, 30%);
+
+   
+    width: 600px;
+    height: 500px;
+    top: 20%;
+    left: -50%;
+    top: 50%;
+    left: 50%;
+  
+   
+    border: 4px solid transparent;
+    border-image: linear-gradient(45deg, #ff0, #f0f, #f00, #00f, #0f0);
+    border-image-slice: 1;
+    border-radius: 25px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2); */
+    width: 600px;
+    height: 500px;
+    top: 50%;
+    left: 50%;
+    border: double 4px transparent;
+    border-radius: 80px;
+    background-image: linear-gradient(45deg, #f00,#3020ff);
+    border-image-slice: 1;
+    background-origin: border-box;
+    background-clip: content-box, border-box;
+
+
+
+
+}
+
+
+h1 {
+    color: white;
+}
+.lead{
+    color: white;
+}
+
+p {
+    color: white;
+}
