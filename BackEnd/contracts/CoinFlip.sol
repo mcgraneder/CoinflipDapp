@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
+pragma experimental ABIEncoderV2;
 
 contract CoinFlip {
 
@@ -16,7 +17,7 @@ contract CoinFlip {
     mapping(address => uint256) playerbalance;
     mapping(address => uint256) contratcBalance;
     
-    constructor() {
+    constructor() public {
        
         contratcBalance[address(this)] = 100000000;
     }
@@ -26,6 +27,11 @@ contract CoinFlip {
         //require(msg.value <= getContractBalance()/2, "You can't bet more than half the contract's balance!");
         require(player[msg.sender].isActive == false, "A bet is already ongoing with this address.");
         _;
+    }
+
+    function getPlayer() public view returns(address) {
+      
+        return msg.sender;
     }
     
      
@@ -93,6 +99,8 @@ contract CoinFlip {
             contratcBalance[address(this)] += player[msg.sender].betAmount;
             
         }
+
+        // player[msg.sender].isActive = false;
         
        
         betLog.pop();
