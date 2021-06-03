@@ -69,8 +69,12 @@ contract CoinFlip {
     function getActiveBets() public view returns(Player[] memory) {
         return betLog;
     }
+
+    function deposit() public payable {
+        playerbalance[msg.sender] += msg.value;
+    }
     
-    function setBet() public payable betConditions {
+    function setBet(uint amount) public betConditions {
         uint  _id = 0;
         
         // for (uint i = 0; i < betLog.length; i++)
@@ -79,13 +83,13 @@ contract CoinFlip {
         // }
        
         player[msg.sender].playerAddress = msg.sender;
-        player[msg.sender].betAmount = msg.value;
-        player[msg.sender].balance = msg.value;
+        player[msg.sender].betAmount = amount;
+        player[msg.sender].balance = playerbalance[msg.sender];
         player[msg.sender].isActive = true;
         player[msg.sender].hasWon = false;
         player[msg.sender].id = _id;
-        playerbalance[msg.sender] = msg.value;
-        betLog.push(Player(msg.sender, msg.value, msg.value, true, false, _id));
+        
+        betLog.push(Player(msg.sender, amount, playerbalance[msg.sender], true, false, _id));
         _id++;
         
        
@@ -133,15 +137,16 @@ contract CoinFlip {
         
     }
 
-    function withdraw() public payable {
+    function withdraw(uint amount) public payable {
         require(playerbalance[msg.sender] != 0);
-
-        uint256 withdrawAmount = playerbalance[msg.sender] / 2;
-        player[msg.sender].balance = 0;
-        playerbalance[msg.sender] = 0;
-        contratcBalance[address(this)] -= withdrawAmount;
+        amount = amount * 10 ** 18;
+        
+        // uint256 withdrawAmount = amount;
+        player[msg.sender].balance -= amount;
+        playerbalance[msg.sender] -= amount;
+        contratcBalance[address(this)] -= amount;
         // address payable playerAddress = payable(msg.sender);
-        msg.sender.transfer(withdrawAmount);
+        msg.sender.transfer(amount);
 
        
 
