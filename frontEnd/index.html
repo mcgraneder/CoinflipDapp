@@ -13,6 +13,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="styles1.css">
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700|Montserrat:300" rel="stylesheet">
   </head>
   <body >
@@ -21,11 +22,11 @@
      
       <h1 class="display-4">Moon Bet</h1>
 
-      <a class="btn-getbalance" href="#">
+      <a id="hideBalanceBtn" class="btn-getbalance" href="#">
         <span onclick="togglePopup()">get Balance</span>
       </a>
 
-      <a class="btn-connectwallet" href="#">
+      <a id="hideWalletBtn" class="btn-connectwallet" href="#">
         <span onclick="hide(); return false">Connect Wallet</span>
       </a>
      
@@ -42,14 +43,24 @@
         <div>
           Your bet is : <span id="bet_output"></span>
         </div>
+
+        <a class="d" href="#">
+          <span onclick="depositQuerey()">Deposit</span>
+        </a>
+        
+        
+        
+       
+        
       </div>
       
     </div>
+   
 
     <p></p>
 
     <div>
-      <div class="buttons">
+      <div id="hideButtons" class="buttons">
         <a class="bet-btn" href="#">
           <span id="add_bet_button" onclick="checkForBlank()">Place Bet</span>
         </a>
@@ -111,9 +122,38 @@
         <div class="withdraw-popup-msg" style="color: #fff;">
           You cannot currently withdraw
         </div>
+        <div class="input-group mb-3">
+          <input type="number" class="form-control" id="withdraw_input" placeholder="amount" min="0" >
+        
+        </div>
+        <a class="flip-btn" href="#">
+          <span id="withdraw_b" onclick="checkinput()">Withdraw</span>
+        </a>
         <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
       </div>
     </div>
+
+    <div class="deposit-popup" id="popup-deposit">
+      <div class="overlay"></div>
+      <div class="content">
+        <div id = "cl" class="close-btn" onclick="depositQuerey()">×</div>
+        <div class="deposit-popup-msg" style="color: #fff;">
+           Enter the amount
+        </div>
+        <div class="input-group mb-3">
+          <input type="number" class="form-control" id="deposit_input_box" placeholder="amount" min="0" >
+        
+        </div>
+        <a class="flip-btn" href="#">
+          <span id="deposit_button" id="deposit_b">Deposit</span>
+        </a>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    
+
+    
 
     <div class="loading-popup" id="popup-load">
       <div class="overlay"></div>

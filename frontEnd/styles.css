@@ -1,5 +1,5 @@
 
-
+@import url('https://fonts.googlepics.com/css?family=poppins:200,300,400,500,600,700,800&display=swap');
 body {
     height: 100%;
     background: rgb(55,61,101);
@@ -206,6 +206,32 @@ h1 {
 	background: white;
 } 
 
+
+
+.deposit-btn {
+  margin: 0;
+  /* padding: 0; */
+  font-family: 'Poppins', sans-serif;
+
+  position: relative;
+  display: inline-block;
+  padding: 12px 36px;
+  margin: 10px 0;
+  color: #fff;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 18px;
+  letter-spacing: 2px;
+  border-radius: 40px;
+  background: linear-gradient(90deg, #755bea, #ff72c0);
+}
+
+
+
+
+
+
+
 .flip-btn {
     /* background-image: linear-gradient(45deg, #ff0, #f0f, #f00, #00f, #0f0); */
 	background-image: linear-gradient(90deg, rgba(0,52,255,1) 2%, rgba(255,0,194,1) 100%);
@@ -320,6 +346,8 @@ h1 {
 .btn-connectwallet:hover span {
 	background: white;
 } 
+
+
 
 .active  {
     background: #aaa;
@@ -667,7 +695,7 @@ h1 {
     background:rgb(30, 12, 58);
     width:95%;
     max-width:300px;
-    height:500px;
+    height:260px;
     z-index:2;
     text-align:center;
     padding:20px;
@@ -712,6 +740,8 @@ h1 {
 
   }
 
+  
+
   button {
     position:absolute;
     top:50%;
@@ -739,6 +769,15 @@ h1 {
     margin-bottom: 0%;
     margin-right: 5%;
     color: white;
+
+  }
+
+  .deposit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column;
 
   }
 

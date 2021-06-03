@@ -1,6 +1,6 @@
 var web3 = new Web3(Web3.givenProvider);
 var contractInstance;
-contract_address = "0x930ca5F7029D8Cb5bA1a0a49A668Ae7C0917a21F";
+contract_address = "0xa5bF67cA51e9706B91a9FF5B9ef8B008566A6304";
 var Stop;
 var exit;
 
@@ -19,47 +19,32 @@ $(document).ready(function() {
     //we want to make a clickable button that executes our create person instance
     //we can use j query but must include our function call in the window
     //this represents the ID of our button tag in index.html
+    $("#deposit_button").click(deposit)
+
     $("#add_bet_button").click(betData)
 
     $("#flip_coin_button").click(flipData)
 
-    $("#withdraw_coin_button").click(withdrawData)
+    $("#withdraw_b").click(withdrawData)
+
+    
     //insyanciate the get data button
    
 
 })
 
-function betData(){
-    
-    
-    //to input data we need the values of the create person forum
-    // contractInstance.methods.getBetStatus().call().then(function(res){
-    //     if (res == true) {
-    //         console.log("I MADE IT");
-    //         setTimeout(function () {
-    //             document.getElementById("popup-input").classList.toggle("active");
-    //         }, 40000)
-            
-    //         if (i != 0) { return; }
-    //     }
-    // }) 
+function deposit() {
 
-
-    
-    var betAmount = $("#bet_input").val(); //.val() gets the value 
-   
+    var depositAmount = $("#deposit_input_box").val();
     var config = {
-        value: web3.utils.toWei(String(betAmount), "ether")
+        value: web3.utils.toWei(String(depositAmount), "ether")
     }
 
-    
-    //now that we have gotten our inut data via jQuery we can call out
-    //contratc function instance
-    ///we use .on() which is an event listener which we can use to get qlerts f
-    //for events
-    const currentBet = contractInstance.methods.getCurrentBet().call();
-    $("#bet_output").text(`${(String(betAmount))} ether`);
-    contractInstance.methods.setBet().send(config)
+    // if (depositAmount == 0) {
+    //     return;
+    // }
+
+    contractInstance.methods.deposit().send(config)
     //get transaction has on creation
     .on("transactionHash", function(hash) {
         console.log(hash);
@@ -78,6 +63,51 @@ function betData(){
 
 
     });
+    
+    
+
+    const balance = contractInstance.methods.getPlayerBalance().call().then(function(balance) {
+        $("#bet-output").text(String(balance) + " Eth");
+    })
+    console.log(balance);
+
+}
+function betData(){
+    
+    
+    // to input data we need the values of the create person forum
+    contractInstance.methods.getBetStatus().call().then(function(res){
+        if (res == true) {
+            console.log("I MADE IT");
+            setTimeout(function () {
+                document.getElementById("popup-input").classList.toggle("active");
+            }, 40000)
+            
+            if (i != 0) { return; }
+        }
+    }) 
+
+
+    
+    var betAmount = $("#bet_input").val(); //.val() gets the value 
+   
+    var config = {
+        value: web3.utils.toWei(String(betAmount), "ether")
+    }
+
+    
+    //now that we have gotten our inut data via jQuery we can call out
+    //contratc function instance
+    ///we use .on() which is an event listener which we can use to get qlerts f
+    //for events
+    const currentBet = contractInstance.methods.getCurrentBet().call();
+    $("#bet_output").text(`${(String(betAmount))} ether`);
+    contractInstance.methods.setBet(betAmount).send().then(function(re) {
+        console.log("HelloWorld");
+    })
+    //get transaction has on creation
+    
+    
 
    
 }
@@ -155,14 +185,15 @@ async function flipData(){
 function withdrawData() {
 
     
-    var config = {
-        value: web3.utils.toWei("3", "ether")
-    }
+    var withdrawAmount = $("#withdraw_input").val();
+    console.log(withdrawAmount);
+    // const etherValue = Web3.utils.fromWei(String(withdrawAmount), 'ether');
+    // withdrawAmount * 2 * 10 ** 18;
     const balance = contractInstance.methods.getPlayerBalance().call().then(function(balance) {
         $("#bet-output").text(String(balance) + " Eth");
     })
     console.log(balance);
-    contractInstance.methods.withdraw().send().then();
+    contractInstance.methods.withdraw(withdrawAmount).send().then();
 
 }
 
@@ -188,13 +219,7 @@ function checkForBlank() {
         document.getElementById("popup-flip").classList.toggle("active");
 
     }
-    // contractInstance.methods.getBetStatus().call().then(function(res) {
-    //     if(res == true) {
-    //         Stop = true;
-    //         document.getElementById("popup-input").classList.toggle("active");
-    //     }
-    // })
-   
+    
 }
 
 
@@ -212,7 +237,7 @@ function checkForBlankFlip() {
 function checkForBlankWithdraw() {
     //handle in future by saying if isActive = flase then cannot flip coin
     const balance = contractInstance.methods.getPlayerBalance().call().then( function(res) {
-        if (res == 0) {
+        if (res != 0) {
             document.getElementById("popup-withdraw").classList.toggle("active");
     
         }
@@ -230,3 +255,30 @@ function checkForLoad() {
     
     
 }
+
+function withdrawRequest() {
+    // handle in future by saying if isActive = flase then cannot flip coin
+    const balance = contractInstance.methods.getPlayerBalance().call().then( function(res) {
+        if (res != 0) {
+            document.getElementById("popup-withdraw2").classList.toggle("active");
+    
+        }
+    });
+    document.getElementById("popup-withdraw2").classList.toggle("active");
+    
+}
+
+function checkinput() {
+
+    var betAmount = $("#withdraw_input").val();
+
+
+}
+
+function depositQuerey() {
+    
+    document.getElementById("popup-deposit").classList.toggle("active");
+    
+   
+}
+

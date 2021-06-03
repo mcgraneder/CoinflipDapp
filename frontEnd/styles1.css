@@ -1,0 +1,169 @@
+
+  .d {
+    background-image: rgb(7, 16, 78);
+    border-radius: 15px;
+      box-sizing: border-box;
+    color: white;
+    display: block;
+    font: 0.9rem 'Oswald', Arial, sans-serif; 
+    height: 40px;
+    letter-spacing: 1px;
+    margin: 0;
+    padding: 2px;
+    position:relative; top:55%; left: 25%;
+      text-decoration: none;
+    text-transform: uppercase;
+    width: 170px;
+    z-index: 2;
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+      
+  }
+  
+  .d:hover {
+    color: blue;
+  }
+  
+  .d span {
+    align-items: center;
+    background: #cc92e7;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    transition: background .5s ease;
+    width: 100%;
+  }
+  
+  .d:hover span {
+    background: white;
+  } 
+
+  .withdraw-popup2 .overlay {
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,0.8);
+    z-index:1;
+    display:none;
+  }
+   
+  .withdraw-popup2 .content {
+    
+    position:absolute;
+    top:46.5%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgb(30, 12, 58);
+    width:95%;
+    max-width:300px;
+    height:220px;
+    z-index:2;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    font-family:"Open Sans",sans-serif;
+    border: 1.5px solid rgba(255,0,194,1);
+    border-radius: 10px;
+    box-shadow: 0 25px 30px rgba(255, 0, 149, 0.452);
+    
+  }
+   
+  .withdraw-popup2 .close-btn {
+    cursor:pointer;
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:15px;
+    height:15px;
+    background:#222;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+  }
+   
+  .withdraw-popup2.active .overlay {
+    display:block;
+  }
+   
+  .withdraw-popup2.active .content {
+    transition:all 350ms ease-in-out;
+    transform:translate(-50%,-50%) scale(1);
+  }
+
+  .withdraw-popup-msg2{
+    
+    margin-top: 4%;
+   
+    color: white;
+
+  }
+
+  .deposit-popup .overlay {
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,0.8);
+    z-index:1;
+    display:none;
+  }
+   
+  .deposit-popup .content {
+    
+    position:absolute;
+    top:46.5%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgb(30, 12, 58);
+    width:95%;
+    max-width:300px;
+    height:220px;
+    z-index:2;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    font-family:"Open Sans",sans-serif;
+    border: 1.5px solid rgba(255,0,194,1);
+    border-radius: 10px;
+    box-shadow: 0 25px 30px rgba(255, 0, 149, 0.452);
+    
+  }
+   
+  .deposit-popup .close-btn {
+    cursor:pointer;
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:15px;
+    height:15px;
+    background:#222;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+  }
+   
+  .deposit-popup.active .overlay {
+    display:block;
+  }
+   
+  .deposit-popup.active .content {
+    transition:all 350ms ease-in-out;
+    transform:translate(-50%,-50%) scale(1);
+  }
+
+  .deposit-popup-msg{
+    
+    margin-top: 4%;
+   
+    color: white;
+
+  }

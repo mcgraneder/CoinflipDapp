@@ -1,4 +1,4 @@
-var abi =  [
+var abi = [
   {
     "inputs": [],
     "payable": false,
@@ -11,9 +11,36 @@ var abi =  [
     "name": "getBetStatus",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getPlayer",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getContratcBalance",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,
@@ -26,7 +53,6 @@ var abi =  [
     "name": "getPlayerBalance",
     "outputs": [
       {
-        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
@@ -41,7 +67,34 @@ var abi =  [
     "name": "random",
     "outputs": [
       {
-        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getCurrentBet",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getPlayerId",
+    "outputs": [
+      {
         "name": "",
         "type": "uint256"
       }
@@ -58,37 +111,30 @@ var abi =  [
       {
         "components": [
           {
-            "internalType": "address",
             "name": "playerAddress",
             "type": "address"
           },
           {
-            "internalType": "uint256",
             "name": "betAmount",
             "type": "uint256"
           },
           {
-            "internalType": "uint256",
             "name": "balance",
             "type": "uint256"
           },
           {
-            "internalType": "bool",
             "name": "isActive",
             "type": "bool"
           },
           {
-            "internalType": "bool",
             "name": "hasWon",
             "type": "bool"
           },
           {
-            "internalType": "uint256",
             "name": "id",
             "type": "uint256"
           }
         ],
-        "internalType": "struct CoinFlip.Player[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -100,10 +146,24 @@ var abi =  [
   {
     "constant": false,
     "inputs": [],
-    "name": "setBet",
+    "name": "deposit",
     "outputs": [],
     "payable": true,
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBet",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -112,7 +172,6 @@ var abi =  [
     "name": "flipCoin",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
@@ -125,7 +184,6 @@ var abi =  [
     "constant": false,
     "inputs": [
       {
-        "internalType": "bool",
         "name": "randomSeed",
         "type": "bool"
       }
@@ -138,7 +196,12 @@ var abi =  [
   },
   {
     "constant": false,
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
     "name": "withdraw",
     "outputs": [],
     "payable": true,
