@@ -452,6 +452,70 @@ h1 {
 
   }
 
+  .input-popup2 .overlay {
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,0.8);
+    z-index:1;
+    display:none;
+  }
+   
+  .input-popup2 .content {
+    
+    position:absolute;
+    top:46.5%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgb(30, 12, 58);
+    width:95%;
+    max-width:300px;
+    height:150px;
+    z-index:2;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    font-family:"Open Sans",sans-serif;
+    border: 1.5px solid rgba(255,0,194,1);
+    border-radius: 10px;
+    box-shadow: 0 25px 30px rgba(255, 0, 149, 0.452);
+    
+  }
+   
+  .input-popup2 .close-btn {
+    cursor:pointer;
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:15px;
+    height:15px;
+    background:#222;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+  }
+   
+  .input-popup2.active .overlay {
+    display:block;
+  }
+   
+  .input-popu2p.active .content {
+    transition:all 350ms ease-in-out;
+    transform:translate(-50%,-50%) scale(1);
+  }
+
+  .input-popup2-msg{
+    margin-top: 4%;
+    margin-top: flip;
+    color: white;
+
+  }
+
   .flip-popup .overlay {
     position:fixed;
     top:0px;
@@ -516,7 +580,138 @@ h1 {
     color: white;
 
   }
+
+  /* __________ */
+  .loading-popup .overlay {
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,0.8);
+    z-index:1;
+    display:none;
+  }
    
+  .loading-popup .content {
+    
+    position:absolute;
+    top:46.5%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgb(30, 12, 58);
+    width:95%;
+    max-width:300px;
+    height:500px;
+    z-index:2;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    font-family:"Open Sans",sans-serif;
+    border: 1.5px solid rgba(255,0,194,1);
+    border-radius: 10px;
+    box-shadow: 0 25px 30px rgba(255, 0, 149, 0.452);
+    
+  }
+   
+  .loading-popup .close-btn {
+    cursor:pointer;
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:15px;
+    height:15px;
+    background:#222;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+  }
+   
+  .loading-popup.active .overlay {
+    display:block;
+  }
+   
+  .loading-popup.active .content {
+    transition:all 350ms ease-in-out;
+    transform:translate(-50%,-50%) scale(1);
+  }
+
+  .loading-popup-msg{
+    
+    margin-top: 4%;
+   
+    color: white;
+
+  }
+   
+  .withdraw-popup .overlay {
+    position:fixed;
+    top:0px;
+    left:0px;
+    width:100vw;
+    height:100vh;
+    background:rgba(0,0,0,0.8);
+    z-index:1;
+    display:none;
+  }
+   
+  .withdraw-popup .content {
+    
+    position:absolute;
+    top:46.5%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    background:rgb(30, 12, 58);
+    width:95%;
+    max-width:300px;
+    height:500px;
+    z-index:2;
+    text-align:center;
+    padding:20px;
+    box-sizing:border-box;
+    font-family:"Open Sans",sans-serif;
+    border: 1.5px solid rgba(255,0,194,1);
+    border-radius: 10px;
+    box-shadow: 0 25px 30px rgba(255, 0, 149, 0.452);
+    
+  }
+   
+  .withdraw-popup .close-btn {
+    cursor:pointer;
+    position:absolute;
+    right:10px;
+    top:10px;
+    width:15px;
+    height:15px;
+    background:#222;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+  }
+   
+  .withdraw-popup.active .overlay {
+    display:block;
+  }
+   
+  .withdraw-popup.active .content {
+    transition:all 350ms ease-in-out;
+    transform:translate(-50%,-50%) scale(1);
+  }
+
+  .withdraw-popup-msg{
+    
+    margin-top: 4%;
+   
+    color: white;
+
+  }
+
   button {
     position:absolute;
     top:50%;
@@ -545,4 +740,33 @@ h1 {
     margin-right: 5%;
     color: white;
 
+  }
+
+  #Outcome {
+
+    font: 0.8rem 'Oswald', Arial, sans-serif; 
+    margin-bottom: 50%;
+    margin-right: 5%;
+    color: white;
+    transition: background .5 ease;
+
+  }
+
+  #Winnings {
+
+    font: 0.8rem 'Oswald', Arial, sans-serif; 
+    margin-bottom: 70%;
+    margin-right: 5%;
+    color: white;
+    transition: background .5s ease;
+
+  }
+
+  #Balance {
+
+    font: 0.8rem 'Oswald', Arial, sans-serif; 
+    margin-bottom: 70%;
+    margin-right: 5%;
+    color: white;
+    transition: background .5s ease;
   }
