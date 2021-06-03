@@ -13,50 +13,10 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="styles.css">
-  
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700|Montserrat:300" rel="stylesheet">
   </head>
   <body >
 
-    <div class="popup" id="popup-1">
-      <div class="overlay"></div>
-      <div class="content">
-        <div class="close-btn" onclick="togglePopup()">×</div>
-        <div class="Address">
-          Your Address: <span id="address_output" style="color: rgb(31, 76, 253); font-size:23.5px;"></span>
-        </div>
-        <div class="Balance">
-          Balance Locked in Contract: <span id="balance_output" style="color: rgb(31, 76, 253);"></span>
-        </div>
-       
-        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
-      </div>
-    </div>
-
-    <div class="input-popup" id="popup-input">
-      <div class="overlay"></div>
-      <div class="content">
-        <div class="close-btn" onclick="checkForBlank()">×</div>
-        <div class="input-popup-msg" style="color: #fff;">
-          You did not enter a value for your    
-           bet amount. Please enter a value!
-        </div>
-        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
-      </div>
-    </div>
-
-    <div class="flip-popup" id="popup-flip">
-      <div class="overlay"></div>
-      <div class="content">
-        <div class="close-btn" onclick="checkForBlankFlip()">×</div>
-        <div class="flip-popup-msg" style="color: #fff;">
-          You cannot flip the coin before
-          placing a bet. Please Place your bet!
-        </div>
-        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
-      </div>
-    </div>
-  
-    
     <div class = "top">
      
       <h1 class="display-4">Moon Bet</h1>
@@ -97,8 +57,85 @@
         <a class="flip-btn" href="#">
           <span id="flip_coin_button"  onclick="checkForBlankFlip()">Flip the coin</span>
         </a>
+        <p></p>
+        <a class="flip-btn" href="#">
+          <span id="withdraw_coin_button"  onclick="checkForBlankWithdraw()">Withdraw</span>
+        </a>
       </div>
       
+     <div class="popup" id="popup-1">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="togglePopup()">×</div>
+        <div class="Address">
+          Your Address: <span id="address_output" style="color: rgb(31, 76, 253); font-size:23.5px;"></span>
+        </div>
+        <div class="Balance">
+          Balance Locked in Contract: <span id="balance_output" style="color: rgb(31, 76, 253);"></span>
+        </div>
+       
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="input-popup" id="popup-input">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForBlank()">×</div>
+        <div class="input-popup-msg" style="color: #fff;">
+          You did not enter a value for your    
+           bet amount. Please enter a value!
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+   
+
+    <div class="flip-popup" id="popup-flip">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForBlankFlip()">×</div>
+        <div class="flip-popup-msg" style="color: #fff;">
+          You cannot flip the coin before
+          placing a bet. Please Place your bet!
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="withdraw-popup" id="popup-withdraw">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForBlankWithdraw()">×</div>
+        <div class="withdraw-popup-msg" style="color: #fff;">
+          You cannot currently withdraw
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="loading-popup" id="popup-load">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForLoad()">×</div>
+        <div class="bet-popup-msg">
+          <span  style="color: rgb(31, 76, 253); font: 1.5rem 'Oswald', Arial, sans-serif;"> Loading Outcome...</span>
+          <p></p>
+          <div id="Outcome">
+            <div id="win-loose"></div>
+          </div>
+          <div id="Winnings">
+            <div id="win-loose-prize"></div>
+          </div>
+          <div id="Balancee1"></div> 
+            <div id="win-loose-balance" style="color: #fff;"></div>
+          </div>
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+  
     
      
    
