@@ -8,7 +8,10 @@ contract CoinFlip {
     struct Player {
         address playerAddress;
         uint256 betAmount;
+        uint256 balance;
         bool isActive;
+        bool hasWon;
+        // bool isWithdrawable;
         uint id;
     }
     
@@ -19,14 +22,20 @@ contract CoinFlip {
     
     constructor() public {
        
-        contratcBalance[address(this)] = 100000000;
+        contratcBalance[address(this)] = 10000000000000000000;
+
     }
     
     modifier betConditions {
         // require(msg.value >= 0.001 ether, "Insuffisant amount, please increase your bet!");
         //require(msg.value <= getContractBalance()/2, "You can't bet more than half the contract's balance!");
-        require(player[msg.sender].isActive == false, "A bet is already ongoing with this address.");
+        // require(player[msg.sender].isActive == false, "A bet is already ongoing with this address.");
         _;
+    }
+    
+
+    function getBetStatus() public view returns(bool) {
+        return player[msg.sender].isActive;
     }
 
     function getPlayer() public view returns(address) {
@@ -64,74 +73,78 @@ contract CoinFlip {
     function setBet() public payable betConditions {
         uint  _id = 0;
         
-        for (uint i = 0; i < betLog.length; i++)
-        {
-            require(betLog[i].playerAddress != msg.sender, "Already registered");
-        }
+        // for (uint i = 0; i < betLog.length; i++)
+        // {
+        //     require(betLog[i].playerAddress != msg.sender, "Already registered");
+        // }
        
         player[msg.sender].playerAddress = msg.sender;
-        player[msg.sender].betAmount += msg.value;
+        player[msg.sender].betAmount = msg.value;
+        player[msg.sender].balance = msg.value;
         player[msg.sender].isActive = true;
+        player[msg.sender].hasWon = false;
         player[msg.sender].id = _id;
-        betLog.push(Player(msg.sender, msg.value, true, _id));
+        playerbalance[msg.sender] = msg.value;
+        betLog.push(Player(msg.sender, msg.value, msg.value, true, false, _id));
         _id++;
         
        
     }
    
-    
-    function flipCoin() public returns(uint) {
+    //update tomorrow to have the flip function update struct values
+    //have another funcion which is then called that puts into play the effects
+    function flipCoin() public view returns(bool) {
         
         require(player[msg.sender].isActive == true);
         // uint user_index = player[msg.sender].id;
-        uint randomSeed = random();
         bool betWin;
-        if (randomSeed == 1) betWin = true;
-        if(betWin) {
-            uint amountWon = player[msg.sender].betAmount * 2;
-            playerbalance[msg.sender] += amountWon;
-            contratcBalance[address(this)] -= amountWon;
+        uint randomSeed = random();
+        if (randomSeed == 1) {
+            betWin = true;
         }
-       
-            
         else {
-            playerbalance[msg.sender] -= player[msg.sender].betAmount;
-            contratcBalance[address(this)] += player[msg.sender].betAmount;
+            betWin = false;
+        }
+      
+        return(betWin);
+    }
+
+    function settleBet(bool randomSeed) public {
+
+        // bool randomSeed;
+       uint betAmount = player[msg.sender].betAmount;
+        if(randomSeed) {
+           player[msg.sender].hasWon = true;
+        //   player[msg.sender].balance = betAmount;
+           contratcBalance[address(this)] -= betAmount;
+           playerbalance[msg.sender] += player[msg.sender].balance;
+        }   
+        else {
+            player[msg.sender].hasWon = false;
+            // player[msg.sender].balance -= betAmount ;
+            contratcBalance[address(this)] += betAmount;
+            playerbalance[msg.sender] -= player[msg.sender].balance;
             
         }
 
-        // player[msg.sender].isActive = false;
-        
-       
+        player[msg.sender].isActive = false;
+        delete(player[msg.sender]);
         betLog.pop();
         
-        delete(player[msg.sender]);
-        
-        return(randomSeed);
+    }
+
+    function withdraw() public payable {
+        require(playerbalance[msg.sender] != 0);
+
+        uint256 withdrawAmount = playerbalance[msg.sender] / 2;
+        player[msg.sender].balance = 0;
+        playerbalance[msg.sender] = 0;
+        contratcBalance[address(this)] -= withdrawAmount;
+        // address payable playerAddress = payable(msg.sender);
+        msg.sender.transfer(withdrawAmount);
+
+       
+
+
     }
 }
-
-//make playerBet struct --> address
-    //                      --> betAmount
-    //                      --> balance
-    //                      --> id
-
-    //make an isActibeBet mapping which maps player address to a boolean
-    //flase if no bet in play, true otherwise. This saves space by having no
-    //isActibe arrtibute in the struct where the only way to lok up would to 
-    //make an instance array and loop through it
-
-    //the bet Id will the index
-
-    //no player can make more than one active bet at once.
-
-    //payer must deposit an entrance fee into the contract for sustainbility
-
-    //initilais the contratcs balance with 10 ether to support the small chance
-    //of someone wiping it out
-
-    //cannot make a bet more than 1/3 of the contratcs balance
-
-    //do make an instance struct to kkp traxk of players. delete the player
-    //after there bet is ettled by id, but log an event so that their histroy
-    //can be tracked even after there bet is settled and deleted. Saves gas
