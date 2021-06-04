@@ -1,9 +1,326 @@
 var abi = [
   {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "playerOracleqQuerey",
+    "outputs": [
+      {
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "name": "playerAddress",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "depositedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "depositMade",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "withdrawedBy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawMade",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "player_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "betId",
+        "type": "uint256"
+      }
+    ],
+    "name": "betInitialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "playerAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "result",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "betId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "hasWon",
+        "type": "bool"
+      }
+    ],
+    "name": "coinFlipped",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "player",
+        "type": "address"
+      }
+    ],
+    "name": "newProvableQuerey",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "newBalance",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "oldBalance",
+        "type": "uint256"
+      }
+    ],
+    "name": "balanceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "randomNumber",
+        "type": "uint256"
+      }
+    ],
+    "name": "generatedRandomNumber",
+    "type": "event"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "setBet",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_myid",
+        "type": "bytes32"
+      },
+      {
+        "name": "_result",
+        "type": "string"
+      }
+    ],
+    "name": "__callback",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_queryId",
+        "type": "bytes32"
+      },
+      {
+        "name": "_result",
+        "type": "uint256"
+      },
+      {
+        "name": "_proof",
+        "type": "bytes"
+      }
+    ],
+    "name": "__callback",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_myid",
+        "type": "bytes32"
+      },
+      {
+        "name": "_result",
+        "type": "string"
+      },
+      {
+        "name": "_proof",
+        "type": "bytes"
+      }
+    ],
+    "name": "__callback",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "testRandom",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "randomNumber",
+        "type": "uint256"
+      }
+    ],
+    "name": "flipCoin",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "randomSeed",
+        "type": "bool"
+      }
+    ],
+    "name": "settleBet",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "deposit",
+    "outputs": [],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getResult",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "constant": true,
@@ -92,20 +409,6 @@ var abi = [
   {
     "constant": true,
     "inputs": [],
-    "name": "getPlayerId",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
     "name": "getActiveBets",
     "outputs": [
       {
@@ -116,10 +419,6 @@ var abi = [
           },
           {
             "name": "betAmount",
-            "type": "uint256"
-          },
-          {
-            "name": "balance",
             "type": "uint256"
           },
           {
@@ -141,71 +440,6 @@ var abi = [
     ],
     "payable": false,
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [],
-    "name": "deposit",
-    "outputs": [],
-    "payable": true,
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "setBet",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
-    "name": "flipCoin",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "randomSeed",
-        "type": "bool"
-      }
-    ],
-    "name": "settleBet",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdraw",
-    "outputs": [],
-    "payable": true,
-    "stateMutability": "payable",
     "type": "function"
   }
 ]

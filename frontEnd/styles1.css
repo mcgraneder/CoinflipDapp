@@ -10,7 +10,7 @@
     letter-spacing: 1px;
     margin: 0;
     padding: 2px;
-    position:relative; top:55%; left: 25%;
+    position: absolute; top:67.5%; left: 25%;
       text-decoration: none;
     text-transform: uppercase;
     width: 170px;
