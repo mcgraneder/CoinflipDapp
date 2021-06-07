@@ -3,7 +3,7 @@ pragma solidity >=0.4.22 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "./ProovableABI.sol";
-import "./OnlyOwner.sol";
+
 
 //make deosit contract function
 //change withdrawal function to withdraw all and set to onlyOwner
@@ -12,7 +12,7 @@ import "./OnlyOwner.sol";
 //set flip function to payable so we can do a transfer. if the
 //bet is a win subtratc 2 * betAmount from conract balance
 //and transfer 2 * betAmount to player address
-contract CoinFlip is usingProvable, Owner {
+contract CoinFlip is usingProvable {
 
 
     // *************************************************************************************************
@@ -91,7 +91,7 @@ contract CoinFlip is usingProvable, Owner {
 
 
     
-    function setBet() public payable  {
+    function setBet(uint amount) public  {
 
         // require(playerbalance[msg.sender] > 0);
         // require(amount >= 0.001, "Insuffisant amount, please increase your bet!");
@@ -99,19 +99,19 @@ contract CoinFlip is usingProvable, Owner {
 
         //initalize a player
         player[msg.sender].playerAddress = msg.sender;
-        player[msg.sender].betAmount = msg.value;
+        player[msg.sender].betAmount = amount * 10 ** 18;
         player[msg.sender].isActive = true;
         player[msg.sender].hasWon = false;
         player[msg.sender].id = _id;
 
         //push the player to the betLog
-        betLog.push(Player(msg.sender, msg.value, true, false, _id));
+        betLog.push(Player(msg.sender, amount, true, false, _id));
 
         //set waiting for oracle result to true
         //and update balances / id accordingly
     	waitingForOracle[msg.sender] = true;
+        playerbalance[msg.sender] -= player[msg.sender].betAmount;
         contratcBalance[address(this)] += player[msg.sender].betAmount;
-        // contratcBalance[address(this)] += player[msg.sender].betAmount;
         _id++;
 
         //call the update function which is responsible for handlu=ing the
@@ -203,7 +203,7 @@ contract CoinFlip is usingProvable, Owner {
     //this function takes the result from the flipCoin function and settles the bet
     //decreases player balance if coinflip is 0 and increases player bal in the
     //coinFlip result is 1
-    function settleBet(bool randomSeed) public payable {
+    function settleBet(bool randomSeed) public {
 
         //store old player balance for events
         uint256 oldPlayerBalance = playerbalance[msg.sender];
@@ -217,14 +217,12 @@ contract CoinFlip is usingProvable, Owner {
         //on the coinflip result
         if(randomSeed) {
            player[playerAddress].hasWon = true;
-        //    contratcBalance[address(this)] -= 2 * betAmount;
-           contratcBalance[address(this)] -= 2 * betAmount;
-           msg.sender.transfer(2 * betAmount);
+           contratcBalance[address(this)] -= betAmount;
+           playerbalance[playerAddress] += 2 * betAmount;
         }   
         else {
             player[playerAddress].hasWon = false;
-            // contratcBalance[address(this)] += betAmount;
-            // playerbalance[playerAddress] -= 2 * betAmount;
+            contratcBalance[address(this)] += betAmount;
         }
 
         //delete player result for fresh new bet
@@ -245,21 +243,20 @@ contract CoinFlip is usingProvable, Owner {
     // *            -------------------DEPOSIT/WITHDRAWABLE FUNCTIONS--------------------------        *                                                                            *
     // *************************************************************************************************
 
-    function withdraw() public payable isOwner {
+    function withdraw(uint amount) public payable {
 
-        // require(playerbalance[msg.sender] != 0);
-        // msg.value = 1 + amount * 10 ** 18;
+        require(playerbalance[msg.sender] != 0);
+        amount = amount * 10 ** 18;
         
-        //playerbalance[msg.sender] -= amount;
-       
-        msg.sender.transfer(contratcBalance[address(this)]);
-        contratcBalance[address(this)]-= contratcBalance[address(this)];
+        playerbalance[msg.sender] -= amount;
+        contratcBalance[address(this)] -= amount;
+        msg.sender.transfer(amount);
 
-        //emit withdrawMade(msg.sender, amount);
+        emit withdrawMade(msg.sender, amount);
 
     }
 
-    function deposit() public payable isOwner {
+    function deposit() public payable {
         playerbalance[msg.sender] += msg.value;
         contratcBalance[address(this)] += msg.value;
 
@@ -295,7 +292,7 @@ contract CoinFlip is usingProvable, Owner {
     
      //get player bal
     function getPlayerBalance() public view returns(uint) {
-        return contratcBalance[address(this)];
+        return playerbalance[msg.sender];
     }
     
     //old random generater function

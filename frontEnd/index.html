@@ -18,7 +18,7 @@
   </head>
   <body >
 
-    <div class = "top">
+    <!-- <div class = "top">
      
       <h1 class="display-4">Moon Bet</h1>
 
@@ -31,8 +31,58 @@
       </a>
      
      
-    </div>
-    <p style="color:white">The best place to double your money</p>
+    </div> -->
+    <nav>
+      <!-- <label class="logo">CodingNepal</label> -->
+      <div id ="h1" >
+        <h1 class="display-4">Moon Bet</h1>
+      </div>
+     
+      <ul>
+        
+         <li class = "menulist">
+            <a href="#">Menu  
+            <i class="fas fa-caret-down"></i>
+            </a>
+            <ul class="dropdown1" >
+               <li onclick="togglePopup()" class = "menuDropdown"><a href="#">Get Balance</a></li>
+               <li><a href="#">Bet Log</a></li>
+               <li><a href="#">How To Play</a></li>
+            </ul>
+         </li>
+         <li class="ad">
+          <a href="#">Admin    
+          <i class="fas fa-caret-down"></i>
+          </a>
+          <ul class="dropdown2">
+             <li><a href="#" onclick="depositQuerey()">Deposit</a></li>
+             <li><a href="#" id="withdraw_coin_button"  onclick="checkForBlankWithdraw()">Withdraw All</a></li>
+             
+          </ul>
+       </li>
+         
+         
+         
+      </ul>
+      <!-- <ul>
+         <li>
+             <a href="#">Admin
+             <i class="fas fa-caret-down"></i>
+             </a>
+             <ul class="dropdown2">
+                <li><a href="#">Deposit</a></li>
+                <li><a href="#">Withdraw All</a></li>
+                
+             </ul>
+          </li>
+      </ul> -->
+      <ul class="wallet">
+         <li ><a href="#">Connect Wallet</a></li>
+      </ul>
+   </nav>
+   <!-- <section></section> -->
+    <p class = "log" style="color:white">The best place to double your money</p>
+    <br>
     <div class="box">
       <h1 class="display-4">Place bet</h1>
       <div class="input-group mb-3">
@@ -48,10 +98,10 @@
           <span id="status_output"></span>
         </div>
 
-        <a class="d" href="#">
+        <!-- <a class="d" href="#">
           <span onclick="depositQuerey()">Deposit</span>
         </a>
-        
+         -->
         
         
        
@@ -62,6 +112,7 @@
    
 
     <p></p>
+    <br>
 
     <div>
       <div id="hideButtons" class="buttons">
@@ -73,9 +124,9 @@
           <span id="flip_coin_button"  onclick="checkForBlankFlip()">Flip the coin</span>
         </a>
         <p></p>
-        <a class="flip-btn" href="#">
-          <span id="withdraw_coin_button"  onclick="checkForBlankWithdraw()">Withdraw</span>
-        </a>
+        <!-- <a class="flip-btn" href="#">
+          <span >Withdraw</span>
+        </a> -->
       </div>
       
      <div class="popup" id="popup-1">
