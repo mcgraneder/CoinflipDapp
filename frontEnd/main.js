@@ -1,6 +1,6 @@
 var web3 = new Web3(Web3.givenProvider);
 var contractInstance;
-contract_address = "0x6F861eFb654e5C634bfCE5C6579f140E1175EC49";
+contract_address = "0x8803B1408D39C6448C08f9Ce3ae990ca2A63F066";
 var Stop;
 var exit;
 var acc1;
@@ -28,7 +28,34 @@ $(document).ready(function() {
 
     $("#add_bet_button").click(betData)
 
+    // contractInstance.once('LogNewProvableQuery', 
+    // {
+    //     filter: { player: getPlayer() },
+    //     fromBlock: 'latest'
+    // }, (error, event) => {
+    //     if(error) throw("Error fetching events");
+    //     // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+    //     console.log("waiting for result");
+    // });
+
+    
+
+
+    //to solve issue of clicking flip button when bet is loading
+    //wrap this call in a function so that it calls an instance of the
+    //contratcs is_loading function and only let syou click if true
     $("#flip_coin_button").click(flipData)
+
+    // contractInstance.once('FlipResult', 
+    // {
+    //   filter: { player: getPlayer() },
+    //   fromBlock: 'latest'
+    // }, (error, event) => {
+    //   if(error) throw("Error fetching events");
+    //   console.log("oracle resolved");
+    // //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
+    // });
+  
 
     $("#withdraw_b").click(withdrawData)
 
@@ -64,21 +91,27 @@ function deposit() {
 
 }
 function betData(){
-    
-    
-    // to input data we need the values of the create person forum
-    // contractInstance.methods.getBetStatus().call().then(function(res){
-    //     if (res == true) {
-    //         console.log("I MADE IT");
-    //         setTimeout(function () {
-    //             document.getElementById("popup-input").classList.toggle("active");
-    //         }, 40000)
-            
-    //         if (i != 0) { return; }
+
+    // contractInstance.methods.hasWon().call().then(function (randomNum) {
+    //     console.log(randomNum);
+    //     if(randomNum == true) {
+    //         console.log("The random number is one")
     //     }
-    // }) 
+    //     else {
+    //         console.log("The random number is 0");
+    //         // return(res.data);
+    //     }
+    // });
 
-
+    contractInstance.once('generatedRandomNumber', 
+    {
+        filter: { player: "0xD5f21085Bc1caaB3dCeb699378fa495796Ee7C0e" },
+        fromBlock: 'latest'
+    }, (error, event) => {
+        if(error) throw("Error fetching events");
+        // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+        console.log("waiting for result");
+    });
     
     var betAmount = $("#bet_input").val();
    //.val() gets the value 
@@ -98,6 +131,7 @@ function betData(){
     $("#bet_output").text(`${(String(betAmount))} ether`);
     contractInstance.methods.setBet().send(config).then(function(re) {
         console.log("HelloWorld");
+       
     })
     
     //get transaction has on creation
@@ -105,6 +139,11 @@ function betData(){
     setTimeout(function() {
         $("#status_output").text(`You can now flip the coin`); 
     }, 4000) 
+
+    // contractInstance.methods.getResult().call().then(function (r) {
+    //     console.log("Made it to the result function");
+    //     console.log(r);
+    // })
     
     
 
@@ -113,18 +152,28 @@ function betData(){
 
 function flipData(){
 
+    contractInstance.once('FlipResult', 
+    {
+      filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
+      fromBlock: 'latest'
+    }, (error, event) => {
+      if(error) throw("Error fetching events");
+      console.log("oracle resolved");
+    //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
+    });
+
     var winAmount = $("#bet_input").val() * 2;
     var looseAmount = $("#bet_input").val();
-    var randomN = contractInstance.methods.getResult().call().then(function (randomNum) {
-        console.log(randomNum);
-        if(randomNum == 1) {
+    var randomN = contractInstance.methods.getRandomNumber().call().then(function (rand) {
+        console.log(rand);
+        if(rand == 1) {
             console.log("you won congrats")
         }
-        else if (randomNum == 0) {
+        else if (rand == 0) {
             console.log("unlucky you lost");
             // return(res.data);
         }
-        contractInstance.methods.flipCoin(randomNum).call().then(function (res) {
+        contractInstance.methods.flipCoin().call().then(function (res) {
             console.log(res);
             if(res == true) {
                 console.log("you won congrats")
@@ -134,7 +183,7 @@ function flipData(){
                 // return(res.data);
             }
             contractInstance.methods.settleBet(res).send().then(function (out) {
-    
+                console.log("entered settle bet func")
     
                 if(res == true) {
                     checkForLoad();
@@ -186,66 +235,12 @@ function flipData(){
     })
     
 
-    contractInstance.methods.flipCoin(randomN).call().then(function (res) {
-        console.log(res);
-        if(res == true) {
-            console.log("you won congrats")
-        }
-        else if (res == false) {
-            console.log("unlucky you lost");
-            // return(res.data);
-        }
-        contractInstance.methods.settleBet(res).send().then(function (out) {
-
-
-            if(res == true) {
-                checkForLoad();
-                setTimeout(function () {
-                    $("#win-loose").text("Congratulations. You won!");
-                }, 3500)
-
-                setTimeout(function () {
-                    $("#win-loose-prize").text("Winnings:\n" + String(winAmount) + " Eth");
-                }, 4500)
-
-                setTimeout(function () {
-                    const balance = contractInstance.methods.getPlayerBalance().call().then(function(balance) {
-                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
-                    });
-                   
-                }, 5000)
-                // $("#bet-output").text("You won " + String(balance) + " Eth");
-            }
-            else {
-
-                checkForLoad();
-                setTimeout(function () {
-                    $("#win-loose").text("Oops you lost. Hard luck!");
-                }, 3500)
-
-                setTimeout(function () {
-                    $("#win-loose-prize").text("Loosings:\n" + String(looseAmount) + " Eth");
-                }, 4500)
-
-                setTimeout(function () {
-                    const balance = contractInstance.methods.getPlayerBalance().call().then(function(balance) {
-                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
-                    });
-                   
-                }, 5000)
-                $("#bet-output").text("You won " + String(balance) + " Eth");
-                
-                
-            }
-        })
-        
-       
-    })
  
     const balance = contractInstance.methods.getPlayerBalance().call().then(function(balance) {
         $("#bet-output").text(String(balance) + " Eth");
     })
     console.log(balance);
+    console.log("Finished this function");
     
    
    
@@ -275,6 +270,18 @@ function togglePopup() {
     // document.getElementById("btn").style.display = "none";;
 
     // var balance = $("#balance_output").val();
+    // const Balance = contractInstance.methods.getActiveBets().call().then(function(res) {
+    //     console.log(res.length);
+    //     for (let i = 0; i < res.length; i++) {
+    //         for (let j = 0; j < res[i].length; j++) {
+    //             // $("#balance_output").text(res[j][i]);
+    //             console.log(res[i][j]);
+    //         }
+    //     }
+    //     $("#balance_output").text(res[1][1]);
+        
+    // })
+
     const Balance = contractInstance.methods.getPlayerBalance().call().then(function(res) {
         $("#balance_output").text(String(res) + " Eth");
     })

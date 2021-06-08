@@ -1,9 +1,13 @@
+
+
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "./ProovableABI.sol";
+
+import "./VRFConsumerBase.sol";
 import "./OnlyOwner.sol";
+
 
 //make deosit contract function
 //change withdrawal function to withdraw all and set to onlyOwner
@@ -12,7 +16,7 @@ import "./OnlyOwner.sol";
 //set flip function to payable so we can do a transfer. if the
 //bet is a win subtratc 2 * betAmount from conract balance
 //and transfer 2 * betAmount to player address
-contract CoinFlip is usingProvable, Owner {
+contract CoinFlip is VRFConsumerBase, Owner{
 
 
     // *************************************************************************************************
@@ -23,9 +27,10 @@ contract CoinFlip is usingProvable, Owner {
     event withdrawMade(address withdrawedBy, uint amount);
     event betInitialized(address player_address, uint amount, uint betId);
     event coinFlipped(address playerAddress, uint result, uint betId, bool hasWon);
-    event newProvableQuerey(address indexed player);
+    event FlipResult(address indexed player, bool won, uint amountWon);
+    event LogNewProvableQuery(address indexed player);
     event balanceUpdated(address player, uint newBalance, uint oldBalance);
-    event generatedRandomNumber(uint randomNumber);
+    event  generatedRandomNumber(uint256 randomNumber);
 
 
     // *************************************************************************************************
@@ -35,7 +40,6 @@ contract CoinFlip is usingProvable, Owner {
     struct Player {
         address playerAddress;
         uint256 betAmount;
-        bool isActive;
         bool hasWon;
         uint id;
     }
@@ -45,10 +49,10 @@ contract CoinFlip is usingProvable, Owner {
         address playerAddress;
   }
     
+    mapping(address => bytes32) oracleQuereyID;
     mapping(address => bool) waitingForOracle;          //stores result of the oracle RN fetch request for a player true/false
-    mapping(address => uint) result;                    //stores the result of the oracles random number for a player
-    mapping(address => bytes32) qid;                    //stores the oracle querey iD for a player
-    mapping(bytes32 => OracleQuery) public playerOracleqQuerey;     //oracle querey
+    mapping(address => bool) isActive;                    //stores the result of the oracles random number for a player
+    mapping(uint => OracleQuery) public playerOracleqQuerey;     //oracle querey
     mapping(address => Player) player;                  //player struct has attributes such as address, betAmount, player ID etc
     mapping(address => uint256) playerbalance;          //player balance mapping
     mapping(address => uint256) contratcBalance;        //contratc balance mappping
@@ -57,11 +61,13 @@ contract CoinFlip is usingProvable, Owner {
     //initial vars set id globally increment each time a player is made
     //NUM random bytes is how much bytes we request from the oracle 1 = range(0, 256) bytes
     //initilaise Player array which will store each instance of a player bet for lookups
+    uint256 public RandomResult;
     uint  private _id = 0;
-    uint amt;
-    uint private constant NUM_RANDOM_BYTES_REQUESTED = 1;
     uint private contractBalance;
+    bytes32 internal keyHash;
+    uint256 internal fee;
     Player[] betLog;
+    OracleQuery[] queryLog;
     
 
     // *************************************************************************************************
@@ -69,18 +75,25 @@ contract CoinFlip is usingProvable, Owner {
     // *************************************************************************************************
 
     //init contratc balance to 0
-    constructor() public {
+    constructor() VRFConsumerBase( 0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, 0xa36085F69e2889c224210F603D836748e7dC0088) public {
+        
        
         contratcBalance[address(this)] = 0;
+        {
+        keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
+        fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
+        }
+    
 
     }
     
-    //modifier for the bet Conditions function. cannot create a bet smaller than 0.01 eth
-    //the betAmiunt must be less thatn half of the contratc bal or else they payout is not possible
-    //no player can have more than one bet ongoing handle this with an isActive attribute
+    // modifier for the bet Conditions function. cannot create a bet smaller than 0.01 eth
+    // the betAmiunt must be less thatn half of the contratc bal or else they payout is not possible
+    // no player can have more than one bet ongoing handle this with an isActive attribute
     modifier betConditions {
-        require(amt >= 0.001 ether, "Insuffisant amount, please increase your bet!");
-        require(amt <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
+        // require(msg.value >= 0.001 ether, "Insuffisant amount, please increase your bet!");
+        // // require(msg.value <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
+        // require(isActive[msg.sender] = false, "Cannot have more than one active bet at a time");
         _;
     }
     
@@ -89,23 +102,18 @@ contract CoinFlip is usingProvable, Owner {
     // *            -------------------COINFLIP ALGORITHM--------------------------                    *                                                                            *
     // *************************************************************************************************
 
-
+    
     
     function setBet() public payable  {
-
-        // require(playerbalance[msg.sender] > 0);
-        // require(amount >= 0.001, "Insuffisant amount, please increase your bet!");
-        // require(amount <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
 
         //initalize a player
         player[msg.sender].playerAddress = msg.sender;
         player[msg.sender].betAmount = msg.value;
-        player[msg.sender].isActive = true;
         player[msg.sender].hasWon = false;
         player[msg.sender].id = _id;
 
         //push the player to the betLog
-        betLog.push(Player(msg.sender, msg.value, true, false, _id));
+        betLog.push(Player(msg.sender, msg.value, false, _id));
 
         //set waiting for oracle result to true
         //and update balances / id accordingly
@@ -116,85 +124,62 @@ contract CoinFlip is usingProvable, Owner {
 
         //call the update function which is responsible for handlu=ing the
         //oracle querey request to get a external trully random number
-        _update();
+        getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
         
         emit betInitialized(msg.sender, player[msg.sender].betAmount, _id);
     }
 
-    //update funcion
-    function _update() internal {
 
-        //set execution delay to 0 and set the gas required
-        //to pay for the oracle for submitting a querey
-        uint QUERY_EXECUTION_DELAY = 0;
-        uint GAS_FOR_CALLBACK =200000;
+     // *************************************************************************************************
+    // *       -------------------CHAINLINK ORACLE FUNCS FOR RANDOMNESS--------------------------       *                                                                            *
+    // **************************************************************************************************
 
-        //submit the oracle querey, this function is called from
-        //the provableABI contratc
-        //bytes32 query_id = provable_newRandomDSQuery(QUERY_EXECUTION_DELAY, NUM_RANDOM_BYTES_REQUESTED, GAS_FOR_CALLBACK);
-        bytes32 query_id = testRandom();
-
-        //after the oracle querey is settled store the result in the player
-        //Oracle querey struct allows us to distingish between players
-        playerOracleqQuerey[query_id].id = query_id;
-        playerOracleqQuerey[query_id].playerAddress = msg.sender;
-        qid[msg.sender] = query_id;
-
-        //emit LogNewProvableQuery(msg.sender);
-    }
-
-    //call back function is called by the oracle once the querey has been settled. 
-    //thia function is caled via the provableABI contract. It finalises the random result
-    function __callback(bytes32 _queryId, uint _result, bytes memory _proof) public returns(uint) {
-        //require(msg.sender == provable_cbAddress());
-
-        //store the oracle generated random num
-        //update the player result mapping accordingly
-        //set waiting for oracle to false
-        uint randomNumber = _result;
-        result[msg.sender] = randomNumber;
-        waitingForOracle[msg.sender] = false;
-        // if (provable_randomDS_proofVerify__returnCode(_queryId, _result, _proof) == 0){
-        // uint randomNumber = uint(keccak256(abi.encodePacked(_result)))%2;
-        // settleBet(randomNumber, _queryId);
-        // emit GeneratedRandomNumber(randomNumber);
-        //}
-        // flipCoin(randomNumber);
-        return(randomNumber);
-    }
-
-    //testing function which mimics the oracle querey func
-    function testRandom() public returns (bytes32) {
-
-        uint randomSeed = random();
-        bytes32 quereyId = bytes32(keccak256(abi.encodePacked(msg.sender)));
-        __callback(quereyId, randomSeed, bytes("test"));
-        return quereyId;
-
-        emit  generatedRandomNumber(randomSeed); 
-    }
    
+    function getRandomNumber(uint256 userProvidedSeed) private returns (bytes32 requestId) {
+        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, fee, userProvidedSeed);
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        
+        waitingForOracle[msg.sender] = false;
+        oracleQuereyID[msg.sender] = requestId;
+        playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
+        playerOracleqQuerey[player[msg.sender].id].id = requestId;
+        RandomResult = randomness % 2;
+
+        if (RandomResult == 1) {
+            player[msg.sender].hasWon = true;
+        }
+        
+       
+       
+        emit  generatedRandomNumber(RandomResult);
+    }
+    
     //update tomorrow to have the flip function update struct values
     //have another funcion which is then called that puts into play the effects
-    function flipCoin(uint randomNumber) public view returns(bool) {
+    function flipCoin() public returns(bool) {
         
         //cannot flip the coin if the player is still waiting for the 
         //oracles result handle that here
-        bytes32 quereyId = qid[msg.sender];
-        address playerAddress = playerOracleqQuerey[quereyId].playerAddress;
-        require(player[msg.sender].isActive == true);
-        require(waitingForOracle[playerAddress] == false);
+        address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
+        // require(player[playerAddress].isActive == true);
+        // require(waitingForOracle[playerAddress] == false);
         bool betWin;
         
         //finalise flip
-        if (randomNumber == 1) {
+        if (player[playerAddress].hasWon == true) {
             betWin = true;
         }
         else {
             betWin = false;
         }
 
-        // emit coinFlipped(msg.sender, randomNumber, player[msg.sender].id, player[msg.sender].hasWon);
+        emit coinFlipped(msg.sender, RandomResult, player[msg.sender].id, isActive[playerAddress]);
       
         return(betWin);
     }
@@ -209,34 +194,31 @@ contract CoinFlip is usingProvable, Owner {
         uint256 oldPlayerBalance = playerbalance[msg.sender];
         uint256 oldContractBalance = contratcBalance[address(this)];
 
-        bytes32 quereyId = qid[msg.sender];
-        address playerAddress = playerOracleqQuerey[quereyId].playerAddress;
+        // bytes32 quereyId = qid[msg.sender];
+        // address playerAddress = playerOracleqQuerey[quereyId].playerAddress;
+        address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
         uint betAmount = player[playerAddress].betAmount;
 
         //update player balances respectively depending
         //on the coinflip result
         if(randomSeed) {
-           player[playerAddress].hasWon = true;
-        //    contratcBalance[address(this)] -= 2 * betAmount;
+            
+        // contratcBalance[address(this)] -= 2 * betAmount;
            contratcBalance[address(this)] -= 2 * betAmount;
            msg.sender.transfer(2 * betAmount);
+           emit FlipResult (msg.sender, true, betAmount * 2);
         }   
         else {
-            player[playerAddress].hasWon = false;
-            // contratcBalance[address(this)] += betAmount;
-            // playerbalance[playerAddress] -= 2 * betAmount;
+            
+            emit FlipResult (msg.sender, false, 0);
         }
 
         //delete player result for fresh new bet
-        //delete player oracle querey for fresh bet also
-        delete(result[msg.sender]);
-        delete(playerOracleqQuerey[quereyId]);
-        player[playerAddress].isActive = false;
+        //delete player oracle querey for fresh bet als
+        isActive[msg.sender] = false;
 
         emit balanceUpdated(msg.sender, playerbalance[msg.sender], oldPlayerBalance);
         emit balanceUpdated(address(this), contratcBalance[address(this)], oldContractBalance);
-
-        
         
     }
 
@@ -245,7 +227,7 @@ contract CoinFlip is usingProvable, Owner {
     // *            -------------------DEPOSIT/WITHDRAWABLE FUNCTIONS--------------------------        *                                                                            *
     // *************************************************************************************************
 
-    function withdraw() public payable isOwner {
+    function withdraw() public payable  {
 
         // require(playerbalance[msg.sender] != 0);
         // msg.value = 1 + amount * 10 ** 18;
@@ -255,11 +237,11 @@ contract CoinFlip is usingProvable, Owner {
         msg.sender.transfer(contratcBalance[address(this)]);
         contratcBalance[address(this)]-= contratcBalance[address(this)];
 
-        //emit withdrawMade(msg.sender, amount);
+        emit withdrawMade(msg.sender, contratcBalance[address(this)]);
 
     }
 
-    function deposit() public payable isOwner {
+    function deposit() public payable {
         playerbalance[msg.sender] += msg.value;
         contratcBalance[address(this)] += msg.value;
 
@@ -271,14 +253,23 @@ contract CoinFlip is usingProvable, Owner {
     // *            ------------------_HELPER FUNCTIONS--------------------------                      *                                                                            *
     // *************************************************************************************************
 
-    //return oracle result
-    function getResult() public view returns (uint) {
-        return result[msg.sender];
-    }
+   
 
     //get Bet status, is player playing or not
+    function getRandomNumber() public view returns(uint) {
+        return RandomResult;
+    }
+
     function getBetStatus() public view returns(bool) {
-        return player[msg.sender].isActive;
+        return isActive[msg.sender];
+    }
+    
+     function getQueryLog() public view returns(OracleQuery[] memory) {
+        return queryLog;
+    }
+
+    function hasWon() public view returns(bool) {
+        return player[msg.sender].hasWon;
     }
 
     //return msg.sender
