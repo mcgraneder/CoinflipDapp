@@ -18,6 +18,31 @@
   </head>
   <body >
 
+    <!-- <div class="loader1">
+      <img src="./assets/LoadingGif.gif" alt="Loading..." />
+    </div>
+
+  <script>
+    
+    $(window).on("load", function() {
+      $(".loader1").fadeOut("slow");
+      
+    })
+  </script>
+
+<div id ="loading" class="loader">
+  <img src="./assets/LoadingGif.gif" alt="Loading..." />
+</div>
+
+<script>
+
+$(window).on("load", function() {
+  $(".loader").hide();
+  // $(".loader").fadeOut("slow");
+})
+</script> -->
+
+  
     <!-- <div class = "top">
      
       <h1 class="display-4">Moon Bet</h1>
@@ -41,20 +66,21 @@
       <ul>
         
          <li class = "menulist">
-            <a href="#">Menu  
+            <a id="MenuList"href="#">Menu  
             <i class="fas fa-caret-down"></i>
             </a>
-            <ul class="dropdown1" >
+            <ul  class="dropdown1" >
                <li onclick="togglePopup()" class = "menuDropdown"><a href="#">Get Balance</a></li>
+               <li><a id="betType" onclick="toggleBet()" href="#">Tails</a></li>
                <li><a href="#">Bet Log</a></li>
-               <li><a href="#">How To Play</a></li>
+               <li onclick="toggleRulesPopup()"><a href="#">How To Play</a></li>
             </ul>
          </li>
          <li class="ad">
-          <a href="#">Admin    
+          <a  onclick="adminMenu2()"  onmouseover="adminMenu()" href="#">Admin    
           <i class="fas fa-caret-down"></i>
           </a>
-          <ul class="dropdown2">
+          <ul id="dropdown-2" class="dropdown2">
              <li><a href="#" onclick="depositQuerey()">Deposit</a></li>
              <li><a href="#" id="withdraw_coin_button"  onclick="checkForBlankWithdraw()">Withdraw All</a></li>
              
@@ -90,8 +116,8 @@
       
       </div>
       <div class="bet-output">
-        <div>
-          Your bet is : <span id="bet_output"></span>
+        <div style = "font-size: 20px;" id="status_updates">
+          <span id="bet_output"></span>
         </div>
         <p></p>
         <div>
@@ -133,13 +159,63 @@
       <div class="overlay"></div>
       <div class="content">
         <div class="close-btn" onclick="togglePopup()">×</div>
+        <p></p>
         <div class="Address">
           Your Address: <span id="address_output" style="color: rgb(31, 76, 253); font-size:23.5px;"></span>
         </div>
         <div class="Balance">
           Balance Locked in Contract: <span id="balance_output" style="color: rgb(31, 76, 253);"></span>
         </div>
+        <div class="Balance">
+          Your Balance: <span id="User-balance_output" style="color: rgb(31, 76, 253);"></span>
+        </div>
        
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="rulespopup" id="rulespopup1">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="toggleRulesPopup()">×</div>
+        <div id="rulesHead">
+          Rules
+        </div>
+        <br>
+        <div class="rules">
+          1. Place your bet. You can have only one
+          active bet at a time
+        </div>
+        <br>
+        <div class="rules">
+          2. Flip the coin and await the result. This
+          may take a few seconds
+        </div>
+        <br>
+        <div class="rules">
+          3. If you draw heads you win and you double 
+            your money
+        </div>
+        <br>
+        <div class="rules">
+          4. If you draw tails the house wins and keeps
+             your initial investment
+        </div>
+        <br>
+        <div class="rules">
+          5. You cannot bet more than half of the total
+             amount locked in the smart contratc balance
+        </div>
+        <br>
+        <div class="rules">
+          6. The minimum bet size is 0.001 ether
+        </div>
+        <br>
+        <br>
+        <div id="rulesFooter">
+          Have fun, Good luck and gamble responsibly
+        </div>
+        
         <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
       </div>
     </div>
@@ -151,6 +227,18 @@
         <div class="input-popup-msg" style="color: #fff;">
           You did not enter a value for your    
            bet amount. Please enter a value!
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="admin-popup" id="popup-admin">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="adminMenu2()">×</div>
+        <div class="input-popup-msg" style="color: #fff;">
+          You do not have access to this tab. Only 
+          the site admin has this ability
         </div>
         <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
       </div>
@@ -175,14 +263,12 @@
       <div class="content">
         <div class="close-btn" onclick="checkForBlankWithdraw()">×</div>
         <div class="withdraw-popup-msg" style="color: #fff;">
-          You cannot currently withdraw
+          Are you sure you would like to 
+          withdraw all of your funds?
         </div>
-        <div class="input-group mb-3">
-          <input type="number" class="form-control" id="withdraw_input" placeholder="amount" min="0" >
-        
-        </div>
+        <br>
         <a class="flip-btn" href="#">
-          <span id="withdraw_b" onclick="checkinput()">Withdraw</span>
+          <span id="withdraw_b">Withdraw</span>
         </a>
         <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
       </div>

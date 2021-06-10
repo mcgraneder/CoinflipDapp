@@ -114,6 +114,22 @@ div {
     
     background: linear-gradient(45deg, #ff0, #f0f, #f00, #00f, #0f0);
 }
+
+#status_updates {
+
+  text-align: center;
+  font-size: 30px;
+  font: 1.125rem 'Oswald', Arial, sans-serif; 
+	height: 70px;
+	letter-spacing: 1px;
+	margin: 1px auto;
+	padding: 2px;
+	/* position: relative; */
+  text-decoration: none;
+	text-transform: uppercase;
+	width: 200px;
+	z-index: 2;
+}
 .box {
     
     
@@ -133,10 +149,10 @@ div {
    
     /* border: 5px solid transparent;
     box-sizing: border-box; */
-    border: 5px solid transparent;
+    border: 2px solid transparent;
     box-shadow: border-box;
     background-clip: padding-box;
-    border-radius: 1rem;
+    border-radius: 0.8rem;
     box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
     
 }
@@ -164,10 +180,11 @@ div {
 
 #h1 {
     text-align: center;
-    font-size: 20px;
+    font-size: 16px;
     color: white;
     position: absolute;
     margin-left: 42%;
+    
 
     /* margin: 0; */
     /* display: inline-block; */
@@ -384,7 +401,7 @@ div {
     background:rgb(30, 12, 58);
     width:95%;
     max-width:600px;
-    height:250px;
+    height:340px;
     z-index:2;
     text-align:center;
     padding:20px;
@@ -770,7 +787,7 @@ div {
   }
 
   .Address{
-    font: 2.0rem 'Oswald', Arial, sans-serif; 
+    font: 1.7rem 'Oswald', Arial, sans-serif; 
     margin-bottom: 0%;
     margin-right: 5%;
     color: white;
@@ -814,3 +831,4 @@ div {
     color: white;
     transition: background .5s ease;
   }
+  
