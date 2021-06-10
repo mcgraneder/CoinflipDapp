@@ -1,359 +1,499 @@
-// SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
-pragma experimental ABIEncoderV2;
+var web3 = new Web3(Web3.givenProvider);
+var contractInstance;
+contract_address = "0xf790AB97bc33714859822167Ca5Ef005E53542f3";
+var Stop;
+var exit;
+var acc1;
 
-import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-contracts/src/v0.6/VRFConsumerBase.sol";
-// import "./VRFConsumerBase.sol";
-// import "./OnlyOwner.sol";
+$(document).ready(function() {
+  
+    window.ethereum.enable();
+    // const accounts = web3.eth.requestAccounts();  
+    // console.log(accounts[0]);
+    // var account = await web3.eth.getAccounts();
+    window.ethereum.enable().then(function(accounts) {
 
-contract CoinFlip is VRFConsumerBase{
-
-
-    // *************************************************************************************************
-    // *            -------------------CONTRACT EVENTS--------------------------                       *                                                                            *
-    // *************************************************************************************************
-
-    event depositMade(address depositedBy, uint amount);
-    event withdrawMade(address withdrawedBy, uint amount);
-    event betInitialized(address player_address, uint amount, uint betId);
-    event coinFlipped(address playerAddress, uint betId, bool hasWon);
-    event FlipResult(address indexed player, bool won, uint amountWon);
-    event LogNewProvableQuery(address indexed player);
-    event balanceUpdated(address player, uint newBalance, uint oldBalance);
-    event  generatedRandomNumber(uint256 randomNumber);
-
-
-    // *************************************************************************************************
-    // *            -------------------DATA STRUCTURES--------------------------                       *                                                                            *
-    // *************************************************************************************************
-
-    struct Player {
-        address playerAddress;
-        uint256 betAmount;
-        bool hasWon;
-        string bet_type;
-        uint id;
-    }
-
-    struct OracleQuery {
-        bytes32 id;
-        address playerAddress;
-  }
-    
-    mapping(address => bytes32) oracleQuereyID;
-    mapping(address => bool) waitingForOracle;          //stores result of the oracle RN fetch request for a player true/false
-    mapping(address => bool) isActive;                    //stores the result of the oracles random number for a player
-    mapping(uint => OracleQuery) public playerOracleqQuerey;     //oracle querey
-    mapping(address => Player) player;                  //player struct has attributes such as address, betAmount, player ID
-    mapping(address => uint256) contratcBalance;        //contratc balance mappping
-    mapping(address => uint) betType;
-    mapping(address => bool) flipped;
-
-    //initial vars set id globally increment each time a player is made
-    //NUM random bytes is how much bytes we request from the oracle 1 = range(0, 256) bytes
-    //initilaise Player array which will store each instance of a player bet for lookups
-    uint256 public RandomResult;
-    uint  private _id = 0;
-    uint private contractBalance;
-    bytes32 internal keyHash;
-    uint256 internal fee;
-    Player[] betLog;
-    OracleQuery[] queryLog;
-    
-
-    // *************************************************************************************************
-    // *            -------------------CONSTRUCTORS & MODIFIERS--------------------------                       *                                                                            *
-    // *************************************************************************************************
-
-    //init contratc balance to 0
-    constructor() VRFConsumerBase( 0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, 0xa36085F69e2889c224210F603D836748e7dC0088) public {
-        
+        //define contract instance
        
-        contratcBalance[address(this)] = 0;
+        contractInstance = new web3.eth.Contract(abi, contract_address, {from: accounts[0]});
         
-        {
-        keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
-        fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
-        }
+        // await connectMetamask();
+        console.log(contractInstance);
+
+    });
+    //we want to make a clickable button that executes our create person instance
+    //we can use j query but must include our function call in the window
+    //this represents the ID of our button tag in index.html
+    $("#deposit_button").click(deposit)
+
+    $("#add_bet_button").click(betData)
+
+    // contractInstance.once('LogNewProvableQuery', 
+    // {
+    //     filter: { player: getPlayer() },
+    //     fromBlock: 'latest'
+    // }, (error, event) => {
+    //     if(error) throw("Error fetching events");
+    //     // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+    //     console.log("waiting for result");
+    // });
+
     
 
-    }
-    
-    // modifier for the bet Conditions function. cannot create a bet smaller than 0.01 eth
-    // the betAmiunt must be less thatn half of the contratc bal or else they payout is not possible
-    // no player can have more than one bet ongoing handle this with an isActive attribute
-    modifier betConditions {
-        require(msg.value >= 0.001 ether, "Insuffisant amount, please increase your bet!");
-        require(isActive[msg.sender] == false, "Cannot have more than one active bet at a time");
-        if(betType[msg.sender] == 1) {
-            require(msg.value <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
-        }
-        else {
-            require(msg.value <= contratcBalance[address(this)] / 4, "You can't bet more than 1 quarter the contracts bal");
-        }
-        
-        _;
-    }
-    
-    
-     // *************************************************************************************************
-    // *       -------------------CHAINLINK ORACLE FUNCS FOR RANDOMNESS--------------------------       *                                                                            *
-    // **************************************************************************************************
-    
 
-    //this function is called in the flip con fuctiom below. When this function is resolved by
-    //the chainlink oracle then the callback function (fullfil randomness) below is called and
-    //the random number is settled for use in the settleBet function which gets called after 
-    //flipCoin()
-    function getRandomNumber(uint256 userProvidedSeed) private returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee, userProvidedSeed);
-    }
+    //to solve issue of clicking flip button when bet is loading
+    //wrap this call in a function so that it calls an instance of the
+    //contratcs is_loading function and only let syou click if true
+    $("#flip_coin_button").click(flipData)
 
-    /**
-     * Callback function used by VRF Coordinator
-     */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        
-        // waitingForOracle[msg.sender] = true;
-        oracleQuereyID[msg.sender] = requestId;
-        playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
-        playerOracleqQuerey[player[msg.sender].id].id = requestId;
-        queryLog.push(OracleQuery(requestId, msg.sender));
-        RandomResult = randomness % 2;
-       
-
-        emit  generatedRandomNumber(RandomResult);
-    }
-    
-    
-    // *************************************************************************************************
-    // *            -------------------COINFLIP MAIN ALGORITHM--------------------------                    *                                                                            *
-    // *************************************************************************************************
-
-    
-    
-    function setBet() public betConditions payable  {
-
-        //initalize a player#
-        string memory betTy;
-        uint result = getBetTyp();
-        if(result == 1) {
-            betTy = "Heads";
-        }else {
-            betTy = "Tails";
-        }
-        
-        player[msg.sender].playerAddress = msg.sender;
-        player[msg.sender].betAmount = msg.value;
-        player[msg.sender].hasWon = false;
-        player[msg.sender].bet_type = betTy;
-        player[msg.sender].id = _id;
-
-        //push the player to the betLog
-        betLog.push(Player(msg.sender, msg.value, false, betTy, _id));
-        isActive[msg.sender] = true;
-        flipped[msg.sender] = false;
-        waitingForOracle[msg.sender] == false;
-
-        //set waiting for oracle result to true
-        //and update balances / id accordingly
-        contratcBalance[address(this)] += player[msg.sender].betAmount;
-        // contratcBalance[address(this)] += player[msg.sender].betAmount;
-        _id++;
-        
-        emit betInitialized(msg.sender, player[msg.sender].betAmount, player[msg.sender].id);
-       
-    }
-
-    
-    //update tomorrow to have the flip function update struct values
-    //have another funcion which is then called that puts into play the effects
-    function flipCoin() public {
-        
-        require(isActive[msg.sender] == true);
-        require(waitingForOracle[msg.sender] == false);
-        
-         //call the update function which is responsible for handlu=ing the
-        //oracle querey request to get a external trully random number
-        waitingForOracle[msg.sender] = true;
-        flipped[msg.sender] = true;
-        getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
-        
-        emit coinFlipped(msg.sender, player[msg.sender].id, isActive[msg.sender]);
-      
-    }
-
-    
-    //this function takes the result from the flipCoin function and settles the bet
-    //decreases player balance if coinflip is 0 and increases player bal in the
-    //coinFlip result is 1
-    function settleBet() public payable  {
-        
-        require(flipped[msg.sender] == true);
-        require(isActive[msg.sender]);
-        require(waitingForOracle[msg.sender] == false);
-        // RandomResult = 1;
-        if (RandomResult == 1) {
-            player[msg.sender].hasWon = true;
-            // betLog[_id].hasWon = true;
-        }
-        
-        //store old player balance for events
-        // uint256 oldPlayerBalance = playerbalance[msg.sender];
-        uint256 oldContractBalance = contratcBalance[address(this)];
-        // uint256 betAmount = player[msg.sender].betAmount;
-
-     
-        // address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
-        uint betAmount = player[msg.sender].betAmount;
-
-        //update player balances respectively depending
-        if (player[msg.sender].hasWon && betType[msg.sender] == 1) {
-            
-            contratcBalance[address(this)] -= 2 * player[msg.sender].betAmount;
-            msg.sender.transfer(2 * player[msg.sender].betAmount);
-            emit FlipResult (msg.sender, true, betAmount * 2);
-            
-        }
-        else if (!player[msg.sender].hasWon && betType[msg.sender] == 1) {
-            emit FlipResult (msg.sender, true, betAmount * 2);
-            
-        }
-        else if (player[msg.sender].hasWon && betType[msg.sender] == 0) {
-            
-            contratcBalance[address(this)] -= 4 * player[msg.sender].betAmount;
-            msg.sender.transfer(4 * player[msg.sender].betAmount);
-            emit FlipResult (msg.sender, true, betAmount * 2);
-            
-        }
-        else if (!player[msg.sender].hasWon && betType[msg.sender] == 1) {
-            emit FlipResult (msg.sender, true, betAmount * 2);
-            
-        }
-
-        //delete player result for fresh new bet
-        //delete player oracle querey for fresh bet als
-        isActive[msg.sender] = false;
-
-        // emit balanceUpdated(msg.sender, playerbalance[msg.sender], oldPlayerBalance);
-        emit balanceUpdated(address(this), contratcBalance[address(this)], oldContractBalance);
-        
-        
-    }
-
-
-
-    // *************************************************************************************************
-    // *            -------------------DEPOSIT/WITHDRAWABLE FUNCTIONS--------------------------        *                                                                            *
-    // *************************************************************************************************
-
-    function withdraw() public payable  {
-       
-        msg.sender.transfer(contratcBalance[address(this)]);
-        contratcBalance[address(this)]-= contratcBalance[address(this)];
-
-        emit withdrawMade(msg.sender, contratcBalance[address(this)]);
-
-    }
-    
-
-    function deposit() public payable {
-        // playerbalance[msg.sender] += msg.value;
-        contratcBalance[address(this)] += msg.value;
-
-        emit depositMade(msg.sender, msg.value);
-    }
-
-
-    // *************************************************************************************************
-    // *            ------------------_HELPER FUNCTIONS--------------------------                      *                                                                            *
-    // *************************************************************************************************
-    
-    
-     function Flipped() public view returns (bool) {
-        return flipped[msg.sender];
-    }
-    
-    
-    function notWaiting() public returns (bool) {
-        waitingForOracle[msg.sender] = false;
-        return waitingForOracle[msg.sender];
-        
-    }
-
-    
-    function chooseBetType(uint typeOfBet) public returns (uint) {
-        
-        require(isActive[msg.sender] == false);
-        
-        if(typeOfBet == 1) {
-            betType[msg.sender] = 1;
-        }else {
-            betType[msg.sender] = 0;
-        }
-        
-        return betType[msg.sender];
-    }
-    
-     function canCelBet() public {
-        
-        require(betLog.length > 0);
-        require(isActive[msg.sender] == true);
-        require(flipped[msg.sender] == false);
-        require(waitingForOracle[msg.sender] == false);
-        isActive[msg.sender] = false;
-        
-        contratcBalance[address(this)] -= player[msg.sender].betAmount;
-        msg.sender.transfer(player[msg.sender].betAmount);
-        
-        delete(betLog);
-        
-    }
-    
-    function getBetTyp() public view returns (uint) {
-        return betType[msg.sender];
-    }
-   
-
-    //get Bet status, is player playing or not
-    function getRandomNumber() public view returns(uint) {
-        return RandomResult;
-    }
-
-    function getBetStatus() public view returns(bool) {
-        return isActive[msg.sender];
-    }
-    
-     function getQueryLog() public view returns(OracleQuery[] memory) {
-        return queryLog;
-    }
+    // contractInstance.once('FlipResult', 
+    // {
+    //   filter: { player: getPlayer() },
+    //   fromBlock: 'latest'
+    // }, (error, event) => {
+    //   if(error) throw("Error fetching events");
+    //   console.log("oracle resolved");
+    // //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
+    // });
   
 
-    function hasWon() public view returns(bool) {
-        return player[msg.sender].hasWon;
+    $("#withdraw_b").click(withdrawData)
+
+    $("MenuList").hover(function(adminMenu){
+       
+      });
+
+    
+    //insyanciate the get data button
+   
+
+})
+
+async function connectMetamask() {
+    if (typeof window.ethereum !== undefined) { 
+      const accounts = await web3.eth.requestAccounts();  
+    //   let p = await getPlayerAddress();
+    //   jQuery("#playerAddress").text(p);
+    }
+  }
+
+function deposit() {
+
+    var depositAmount = $("#deposit_input_box").val();
+    var config = {
+        value: web3.utils.toWei(String(depositAmount), "ether")
     }
 
-    //return msg.sender
-    function getPlayer() public view returns(address) {
-      
-        return msg.sender;
-    }
+    // if (depositAmount == 0) {
+    //     return;
+    // }
+
+    contractInstance.methods.deposit().send(config)
+    //get transaction has on creation
+   
     
-    //get contraqtc bal
-    function getContratcBalance() public view returns(uint) {
-      
-        return contratcBalance[address(this)];
+
+}
+function betData(){
+
+    // contractInstance.methods.hasWon().call().then(function (randomNum) {
+    //     console.log(randomNum);
+    //     if(randomNum == true) {
+    //         console.log("The random number is one")
+    //     }
+    //     else {
+    //         console.log("The random number is 0");
+    //         // return(res.data);
+    //     }
+    // });
+    // $("#loading").show();
+    // document.getElementById("loading").style.display ="flex";
+    // loadLoader();
+//     $("#bet_output").text("Confirming bet Transaction..");
+    
+//     contractInstance.once('generatedRandomNumber', 
+//     {
+//         filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
+//         fromBlock: 'latest'
+//     }, (error, event) => {
+//         if(error) throw("Error fetching events");
+//         // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+//         console.log("waiting for result");
+//     });
+
+//     contractInstance.once('betInitialized', 
+//     {
+       
+//         fromBlock: 'latest'
+//     }, (error, event) => {
+//         if(error) throw("Error fetching events");
+//         // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+//         console.log("bet init");
+//     });
+    
+    var betAmount = $("#bet_input").val();
+   //.val() gets the value 
+   
+    var config = {
+        value: web3.utils.toWei(String(betAmount), "ether")
     }
+
+    
+    //now that we have gotten our inut data via jQuery we can call out
+    //contratc function instance
+    ///we use .on() which is an event listener which we can use to get qlerts f
+    //for events
+    const currentBet = contractInstance.methods.getCurrentBet().call()
+
+
+    $("#bet_output").text(`You bet ${(String(betAmount))} ether`);
+    
+    // contractInstance.methods.setBet().call().then(function(res) {
+        // document.getElementById("loading").style.display ="flex";
+        
+        
+    // })
+    // contractInstance.methods.setBet().call().then(function() {
+        
+    // })
+    contractInstance.methods.setBet().send(config)
+    .on("transactionHash", function(hash) {
+        console.log(hash);
+        loadLoader();
+
+    })
+    //get confirmation message on confirmation
+    .on("confirmation", function(confirmationNr) {
+        console.log(confirmationNr);
+        
+
+    })
+    //get receipt when ransaction is first mined
+    .on("receipt", function(receipt) {
+        console.log(receipt);
+        loadLoader();
+        alert("Transaction successful");
+        
+        $("#bet_output").text("You can now flip the coin");
+
+
+    }).then(function() {
+        // document.getElementById("loading").style.display ="none";
+        $(".loader").hide();
+        
+
+    })
+
+   
+}
+
+
+
+
+function flipData(){
+
+    contractInstance.once('generatedRandomNumber', 
+        {
+        filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
+        fromBlock: 'latest'
+        }, (error, event) => {
+        if(error) throw("Error fetching events");
+        console.log("oracle resolved");
+
+        var winAmount = $("#bet_input").val() * 2;
+        var looseAmount = $("#bet_input").val();
+        contractInstance.methods.settleBet().send().then(function (out) {
+            console.log("entered settle bet func")
+            var res = 1;
+            if(res == 1) {
+                checkForLoad();
+                setTimeout(function () {
+                    $("#win-loose").text("Congratulations. You won!");
+                }, 3500)
+
+                setTimeout(function () {
+                    $("#win-loose-prize").text("Winnings:\n" + String(winAmount) + " Eth");
+                }, 4500)
+
+                setTimeout(function () {
+                    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
+                    });
+                
+                }, 5000)
+                $(".loader").hide();
+                $("#bet_output").text("Congratulations! You won");
+                // $("#bet-output").text("You won " + String(balance) + " Eth");
+            }
+            else {
+
+                checkForLoad();
+                setTimeout(function () {
+                    $("#win-loose").text("Oops you lost. Hard luck!");
+                }, 3500)
+
+                setTimeout(function () {
+                    $("#win-loose-prize").text("Loosings:\n" + String(looseAmount) + " Eth");
+                }, 4500)
+
+                setTimeout(function () {
+                    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
+                    });
+                
+                }, 5000)
+                $("#bet-output").text("You won " + String(balance) + " Eth");
+                $(".loader").hide();
+                $("#bet_output").text("Hard luck you lost");
+                
+                
+            }
+        })
+    
+
+
+
+    //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
+    });
+
+    loadLoader();
+    $("#bet_output").text("Retrieving Bet output from Oracle");
+
+    var winAmount = $("#bet_input").val() * 2;
+    var looseAmount = $("#bet_input").val();
+    var randomN = contractInstance.methods.getRandomNumber().call().then(function (rand) {
+        console.log(rand);
+        if(rand == 1) {
+            console.log("you won congrats")
+        }
+        else if (rand == 0) {
+            console.log("unlucky you lost");
+            // return(res.data);
+        }
+        contractInstance.methods.flipCoin().send().then(function (res) {
+            console.log("calling oracle");
+            
+            
+           
+        })
+     
+
+
+
+    })
+    
+
  
+    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+        $("#bet-output").text(String(balance) + " Eth");
+    })
+    console.log(balance);
+    console.log("Finished this function");
     
-    //return the players bet
-    function getCurrentBet() public view returns(uint) {
-        return player[msg.sender].betAmount;
+   
+   
+}
+
+function withdrawData() {
+
+    // const etherValue = Web3.utils.fromWei(String(withdrawAmount), 'ether');
+    // withdrawAmount * 2 * 10 ** 18;
+    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+        $("#bet-output").text(String(balance) + " Eth");
+    })
+    console.log(balance);
+    contractInstance.methods.withdraw().send();
+
+}
+
+function togglePopup() {
+    document.getElementById("popup-1").classList.toggle("active");
+    // document.getElementById("btn").style.display = "none";;
+
+    // var balance = $("#balance_output").val();
+    // const Balance = contractInstance.methods.getActiveBets().call().then(function(res) {
+    //     console.log(res.length);
+    //     for (let i = 0; i < res.length; i++) {
+    //         for (let j = 0; j < res[i].length; j++) {
+    //             // $("#balance_output").text(res[j][i]);
+    //             console.log(res[i][j]);
+    //         }
+    //     }
+    //     $("#balance_output").text(res[1][1]);
+        
+    // })
+
+    const Balance = contractInstance.methods.getContratcBalance().call().then(function(res) {
+        res = res / 10 ** 18;
+        res = res.toFixed(3)
+        $("#balance_output").text(String(res) + " Eth");
+    })
+
+    const owner = contractInstance.methods.getPlayer().call().then(function(res) {
+        $("#address_output").text(String(res));
+        contractInstance.methods.hasWon().call().then(function(res1) {
+            console.log(res1);
+        })
+    })
+
+    contractInstance.methods.getBetTyp().call().then(function (rand) {
+        console.log(rand);
+    });
+    
+
+    // getPlayerBalance().call().then(function(res) {
+    //     $("#User-balance_output").text(String(res));
+    // });
+
+    var bals = getPlayerBalance() 
+    console.log(bals);
+    $("#User-balance_output").text(String(bals));
+
+    
+    
+}
+
+function toggleRulesPopup() {
+    document.getElementById("rulespopup1").classList.toggle("active");
+    
+}
+
+function checkForBlank() {
+    if (document.getElementById("bet_input").value == "") {
+        document.getElementById("popup-input").classList.toggle("active");
     }
+    else if (document.getElementById("bet_input").value == "") {
+        document.getElementById("popup-flip").classList.toggle("active");
+
+    }
+
     
-    //return the bet Log of all bet histroys    
-    function getActiveBets() public view returns(Player[] memory) {
-        return betLog;
+}
+
+
+function checkForBlankFlip() {
+    //handle in future by saying if isActive = flase then cannot flip coin
+    const isActive = contractInstance.methods.getCurrentBet().call().then( function(res) {
+        if (res == 0) {
+            document.getElementById("popup-flip").classList.toggle("active");
+    
+        }
+    });
+    
+}
+
+function checkForBlankWithdraw() {
+    //handle in future by saying if isActive = flase then cannot flip coin
+    const balance = contractInstance.methods.getContratcBalance().call().then( function(res) {
+        if (res != 0) {
+            document.getElementById("popup-withdraw").classList.toggle("active");
+    
+        }
+    });
+    
+}
+
+function checkForLoad() {
+    //handle in future by saying if isActive = flase then cannot flip coin
+    
+    document.getElementById("popup-load").classList.toggle("active");
+    // document.getElementById("Winnings").classList.toggle("a")
+    
+        
+    
+    
+}
+
+function withdrawRequest() {
+    // handle in future by saying if isActive = flase then cannot flip coin
+    const balance = contractInstance.methods.getContratcBalance().call().then( function(res) {
+        if (res != 0) {
+            document.getElementById("popup-withdraw2").classList.toggle("active");
+    
+        }
+    });
+    document.getElementById("popup-withdraw2").classList.toggle("active");
+    
+}
+
+function checkinput() {
+
+    var betAmount = $("#withdraw_input").val();
+
+
+}
+
+function depositQuerey() {
+    
+    document.getElementById("popup-deposit").classList.toggle("active");
+    
+   
+}
+
+function adminMenu() {
+    console.log("mouse hover")
+    contractInstance.methods.getPlayer().call().then(function(res) {
+        console.log(res);
+        if(res != "0x59C6c942cB04fe92743D40dF4A92B55E69B3D6C8") {
+           
+            console.log("incorrect addres");
+            document.getElementById("dropdown-2").style.display = "none";
+        }
+        // if(adminMenu2()) {
+        //     document.getElementById("popup-admin").classList.toggle("active");
+        // }
+    })
+    
+}
+
+function adminMenu2() {
+    document.getElementById("popup-admin").classList.toggle("active");
+
+}
+
+function getPlayerBalance() {
+
+    const owner = contractInstance.methods.getPlayer().call().then(function(res) {
+        console.log(res);
+        const bal = web3.eth.getBalance(res).then(function (bals) {
+            console.log(bals);
+            bals = bals / 10 ** 18;
+            bals = bals.toFixed(3)
+            $("#User-balance_output").text("\n" + String(bals) + " Eth");
+            // return bals;
+        });
+       
+    })
+}
+
+function loadLoader() {
+    
+    $(".loader").show();
+        // $(".loader").fadeOut("slow");
+      
+
+}
+
+var clicked = false;
+function toggleBet() {
+
+    
+
+    if(!clicked) {
+        clicked = true;
+        document.getElementById("betType").innerHTML = "tails";
+        contractInstance.methods.chooseBetType(0).send().then(function (res) {
+            console.log(res);
+        })
+        
+    }
+    else {
+        clicked = false;
+        document.getElementById("betType") .innerHTML = "heads";
+        contractInstance.methods.chooseBetType(1).send().then(function (res) {
+            console.log(res);
+        })
     }
 }
+
+
