@@ -1,22 +1,12 @@
-
-
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.22 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-
+// import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-contracts/src/v0.6/VRFConsumerBase.sol";
 import "./VRFConsumerBase.sol";
 import "./OnlyOwner.sol";
 
-
-//make deosit contract function
-//change withdrawal function to withdraw all and set to onlyOwner
-//change the setBet function to payable and depsoit in amount
-//when bet is set update contract balance to inrease by bet amount
-//set flip function to payable so we can do a transfer. if the
-//bet is a win subtratc 2 * betAmount from conract balance
-//and transfer 2 * betAmount to player address
-contract CoinFlip is VRFConsumerBase, Owner{
+contract CoinFlip is VRFConsumerBase{
 
 
     // *************************************************************************************************
@@ -26,7 +16,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
     event depositMade(address depositedBy, uint amount);
     event withdrawMade(address withdrawedBy, uint amount);
     event betInitialized(address player_address, uint amount, uint betId);
-    event coinFlipped(address playerAddress, uint result, uint betId, bool hasWon);
+    event coinFlipped(address playerAddress, uint betId, bool hasWon);
     event FlipResult(address indexed player, bool won, uint amountWon);
     event LogNewProvableQuery(address indexed player);
     event balanceUpdated(address player, uint newBalance, uint oldBalance);
@@ -41,6 +31,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
         address playerAddress;
         uint256 betAmount;
         bool hasWon;
+        string bet_type;
         uint id;
     }
 
@@ -53,10 +44,10 @@ contract CoinFlip is VRFConsumerBase, Owner{
     mapping(address => bool) waitingForOracle;          //stores result of the oracle RN fetch request for a player true/false
     mapping(address => bool) isActive;                    //stores the result of the oracles random number for a player
     mapping(uint => OracleQuery) public playerOracleqQuerey;     //oracle querey
-    mapping(address => Player) player;                  //player struct has attributes such as address, betAmount, player ID etc
-    mapping(address => uint256) playerbalance;          //player balance mapping
+    mapping(address => Player) player;                  //player struct has attributes such as address, betAmount, player ID
     mapping(address => uint256) contratcBalance;        //contratc balance mappping
-
+    mapping(address => uint) betType;
+    mapping(address => bool) flipped;
 
     //initial vars set id globally increment each time a player is made
     //NUM random bytes is how much bytes we request from the oracle 1 = range(0, 256) bytes
@@ -79,6 +70,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
         
        
         contratcBalance[address(this)] = 0;
+        
         {
         keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
         fee = 0.1 * 10 ** 18; // 0.1 LINK (Varies by network)
@@ -91,50 +83,28 @@ contract CoinFlip is VRFConsumerBase, Owner{
     // the betAmiunt must be less thatn half of the contratc bal or else they payout is not possible
     // no player can have more than one bet ongoing handle this with an isActive attribute
     modifier betConditions {
-        // require(msg.value >= 0.001 ether, "Insuffisant amount, please increase your bet!");
-        // // require(msg.value <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
-        // require(isActive[msg.sender] = false, "Cannot have more than one active bet at a time");
+        require(msg.value >= 0.001 ether, "Insuffisant amount, please increase your bet!");
+        require(isActive[msg.sender] == false, "Cannot have more than one active bet at a time");
+        if(betType[msg.sender] == 1) {
+            require(msg.value <= contratcBalance[address(this)] / 2, "You can't bet more than half the contracts bal");
+        }
+        else {
+            require(msg.value <= contratcBalance[address(this)] / 4, "You can't bet more than 1 quarter the contracts bal");
+        }
+        
         _;
     }
     
-
-    // *************************************************************************************************
-    // *            -------------------COINFLIP ALGORITHM--------------------------                    *                                                                            *
-    // *************************************************************************************************
-
     
-    
-    function setBet() public payable  {
-
-        //initalize a player
-        player[msg.sender].playerAddress = msg.sender;
-        player[msg.sender].betAmount = msg.value;
-        player[msg.sender].hasWon = false;
-        player[msg.sender].id = _id;
-
-        //push the player to the betLog
-        betLog.push(Player(msg.sender, msg.value, false, _id));
-
-        //set waiting for oracle result to true
-        //and update balances / id accordingly
-    	waitingForOracle[msg.sender] = true;
-        contratcBalance[address(this)] += player[msg.sender].betAmount;
-        // contratcBalance[address(this)] += player[msg.sender].betAmount;
-        _id++;
-
-        //call the update function which is responsible for handlu=ing the
-        //oracle querey request to get a external trully random number
-        getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
-        
-        emit betInitialized(msg.sender, player[msg.sender].betAmount, _id);
-    }
-
-
      // *************************************************************************************************
     // *       -------------------CHAINLINK ORACLE FUNCS FOR RANDOMNESS--------------------------       *                                                                            *
     // **************************************************************************************************
+    
 
-   
+    //this function is called in the flip con fuctiom below. When this function is resolved by
+    //the chainlink oracle then the callback function (fullfil randomness) below is called and
+    //the random number is settled for use in the settleBet function which gets called after 
+    //flipCoin()
     function getRandomNumber(uint256 userProvidedSeed) private returns (bytes32 requestId) {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
         return requestRandomness(keyHash, fee, userProvidedSeed);
@@ -145,82 +115,133 @@ contract CoinFlip is VRFConsumerBase, Owner{
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         
-        waitingForOracle[msg.sender] = false;
+        // waitingForOracle[msg.sender] = true;
         oracleQuereyID[msg.sender] = requestId;
         playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
         playerOracleqQuerey[player[msg.sender].id].id = requestId;
+        queryLog.push(OracleQuery(requestId, msg.sender));
         RandomResult = randomness % 2;
+       
 
-        if (RandomResult == 1) {
-            player[msg.sender].hasWon = true;
-        }
-        
-       
-       
         emit  generatedRandomNumber(RandomResult);
     }
     
+    
+    // *************************************************************************************************
+    // *            -------------------COINFLIP MAIN ALGORITHM--------------------------                    *                                                                            *
+    // *************************************************************************************************
+
+    
+    
+    function setBet() public betConditions payable  {
+
+        //initalize a player#
+        string memory betTy;
+        uint result = getBetTyp();
+        if(result == 1) {
+            betTy = "Heads";
+        }else {
+            betTy = "Tails";
+        }
+        
+        player[msg.sender].playerAddress = msg.sender;
+        player[msg.sender].betAmount = msg.value;
+        player[msg.sender].hasWon = false;
+        player[msg.sender].bet_type = betTy;
+        player[msg.sender].id = _id;
+
+        //push the player to the betLog
+        betLog.push(Player(msg.sender, msg.value, false, betTy, _id));
+        isActive[msg.sender] = true;
+        flipped[msg.sender] = false;
+        waitingForOracle[msg.sender] == false;
+
+        //set waiting for oracle result to true
+        //and update balances / id accordingly
+        contratcBalance[address(this)] += player[msg.sender].betAmount;
+        // contratcBalance[address(this)] += player[msg.sender].betAmount;
+        _id++;
+        
+        emit betInitialized(msg.sender, player[msg.sender].betAmount, player[msg.sender].id);
+       
+    }
+
+    
     //update tomorrow to have the flip function update struct values
     //have another funcion which is then called that puts into play the effects
-    function flipCoin() public returns(bool) {
+    function flipCoin() public {
         
-        //cannot flip the coin if the player is still waiting for the 
-        //oracles result handle that here
-        address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
-        // require(player[playerAddress].isActive == true);
-        // require(waitingForOracle[playerAddress] == false);
-        bool betWin;
+        require(isActive[msg.sender] == true);
+        require(waitingForOracle[msg.sender] == false);
         
-        //finalise flip
-        if (player[playerAddress].hasWon == true) {
-            betWin = true;
-        }
-        else {
-            betWin = false;
-        }
-
-        emit coinFlipped(msg.sender, RandomResult, player[msg.sender].id, isActive[playerAddress]);
+         //call the update function which is responsible for handlu=ing the
+        //oracle querey request to get a external trully random number
+        waitingForOracle[msg.sender] = true;
+        flipped[msg.sender] = true;
+        getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
+        
+        emit coinFlipped(msg.sender, player[msg.sender].id, isActive[msg.sender]);
       
-        return(betWin);
     }
 
     
     //this function takes the result from the flipCoin function and settles the bet
     //decreases player balance if coinflip is 0 and increases player bal in the
     //coinFlip result is 1
-    function settleBet(bool randomSeed) public payable {
-
+    function settleBet() public payable  {
+        
+        require(flipped[msg.sender] == true);
+        require(isActive[msg.sender]);
+        // require(waitingForOracle[msg.sender] == false);
+        // RandomResult = 1;
+        if (RandomResult == 1) {
+            player[msg.sender].hasWon = true;
+            // betLog[_id].hasWon = true;
+        }
+        
         //store old player balance for events
-        uint256 oldPlayerBalance = playerbalance[msg.sender];
+        // uint256 oldPlayerBalance = playerbalance[msg.sender];
         uint256 oldContractBalance = contratcBalance[address(this)];
+        // uint256 betAmount = player[msg.sender].betAmount;
 
-        // bytes32 quereyId = qid[msg.sender];
-        // address playerAddress = playerOracleqQuerey[quereyId].playerAddress;
-        address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
-        uint betAmount = player[playerAddress].betAmount;
+     
+        // address playerAddress = playerOracleqQuerey[player[msg.sender].id].playerAddress;
+        uint betAmount = player[msg.sender].betAmount;
 
         //update player balances respectively depending
-        //on the coinflip result
-        if(randomSeed) {
+        if (player[msg.sender].hasWon && betType[msg.sender] == 0) {
             
-        // contratcBalance[address(this)] -= 2 * betAmount;
-           contratcBalance[address(this)] -= 2 * betAmount;
-           msg.sender.transfer(2 * betAmount);
-           emit FlipResult (msg.sender, true, betAmount * 2);
-        }   
-        else {
+            contratcBalance[address(this)] -= 2 * player[msg.sender].betAmount;
+            msg.sender.transfer(2 * player[msg.sender].betAmount);
+            emit FlipResult (msg.sender, true, betAmount * 2);
             
-            emit FlipResult (msg.sender, false, 0);
+        }
+        else if (!player[msg.sender].hasWon && betType[msg.sender] == 0) {
+            emit FlipResult (msg.sender, true, betAmount * 2);
+            
+        }
+        else if (player[msg.sender].hasWon && betType[msg.sender] == 1) {
+            
+            contratcBalance[address(this)] -= 4 * player[msg.sender].betAmount;
+            msg.sender.transfer(4 * player[msg.sender].betAmount);
+            emit FlipResult (msg.sender, true, betAmount * 2);
+            
+        }
+        else if (!player[msg.sender].hasWon && betType[msg.sender] == 1) {
+            emit FlipResult (msg.sender, true, betAmount * 2);
+            
         }
 
         //delete player result for fresh new bet
         //delete player oracle querey for fresh bet als
         isActive[msg.sender] = false;
 
-        emit balanceUpdated(msg.sender, playerbalance[msg.sender], oldPlayerBalance);
+        // emit balanceUpdated(msg.sender, playerbalance[msg.sender], oldPlayerBalance);
         emit balanceUpdated(address(this), contratcBalance[address(this)], oldContractBalance);
         
+        
     }
+
 
 
     // *************************************************************************************************
@@ -228,11 +249,6 @@ contract CoinFlip is VRFConsumerBase, Owner{
     // *************************************************************************************************
 
     function withdraw() public payable  {
-
-        // require(playerbalance[msg.sender] != 0);
-        // msg.value = 1 + amount * 10 ** 18;
-        
-        //playerbalance[msg.sender] -= amount;
        
         msg.sender.transfer(contratcBalance[address(this)]);
         contratcBalance[address(this)]-= contratcBalance[address(this)];
@@ -240,9 +256,10 @@ contract CoinFlip is VRFConsumerBase, Owner{
         emit withdrawMade(msg.sender, contratcBalance[address(this)]);
 
     }
+    
 
     function deposit() public payable {
-        playerbalance[msg.sender] += msg.value;
+        // playerbalance[msg.sender] += msg.value;
         contratcBalance[address(this)] += msg.value;
 
         emit depositMade(msg.sender, msg.value);
@@ -252,7 +269,51 @@ contract CoinFlip is VRFConsumerBase, Owner{
     // *************************************************************************************************
     // *            ------------------_HELPER FUNCTIONS--------------------------                      *                                                                            *
     // *************************************************************************************************
+    
+    
+     function Flipped() public view returns (bool) {
+        return flipped[msg.sender];
+    }
+    
+    
+    function notWaiting() public returns (bool) {
+        waitingForOracle[msg.sender] = false;
+        return waitingForOracle[msg.sender];
+        
+    }
 
+    
+    function chooseBetType(uint typeOfBet) public returns (uint) {
+        
+        require(isActive[msg.sender] == false);
+        
+        if(typeOfBet == 1) {
+            betType[msg.sender] = 1;
+        }else {
+            betType[msg.sender] = 0;
+        }
+        
+        return betType[msg.sender];
+    }
+    
+     function canCelBet() public {
+        
+        require(betLog.length > 0);
+        require(isActive[msg.sender] == true);
+        require(flipped[msg.sender] == false);
+        require(waitingForOracle[msg.sender] == false);
+        isActive[msg.sender] = false;
+        
+        contratcBalance[address(this)] -= player[msg.sender].betAmount;
+        msg.sender.transfer(player[msg.sender].betAmount);
+        
+        delete(betLog);
+        
+    }
+    
+    function getBetTyp() public view returns (uint) {
+        return betType[msg.sender];
+    }
    
 
     //get Bet status, is player playing or not
@@ -267,6 +328,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
      function getQueryLog() public view returns(OracleQuery[] memory) {
         return queryLog;
     }
+  
 
     function hasWon() public view returns(bool) {
         return player[msg.sender].hasWon;
@@ -283,16 +345,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
       
         return contratcBalance[address(this)];
     }
-    
-     //get player bal
-    function getPlayerBalance() public view returns(uint) {
-        return contratcBalance[address(this)];
-    }
-    
-    //old random generater function
-    function random() public view returns(uint) {
-        return block.timestamp % 2;
-    }
+ 
     
     //return the players bet
     function getCurrentBet() public view returns(uint) {
