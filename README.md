@@ -38,7 +38,7 @@ One final thing that may not be installed im not sure is the truffle assertions.
 # DEMO Of the App & UI Screenshots
 
 Link to a video demo of the app
-https://vimeo.com/manage/videos/561853762
+https://www.youtube.com/watch?v=viz6dCDS2JQ
 
 Screenshot of the UI
 ![dapp screenshot](https://user-images.githubusercontent.com/40043037/121742744-2cf6bd00-caf8-11eb-8b84-2dc0d176265f.PNG)
