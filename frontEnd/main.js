@@ -1,91 +1,54 @@
 var web3 = new Web3(Web3.givenProvider);
 var contractInstance;
 contract_address = "0x964E19399fe7FdDb9522E4026D4217D0946c2dEd";
-var Stop;
-var exit;
-var acc1;
+
+//helper variables 
 var betisActive = false;
 var active;
 var waitingForOracle;
 var heads_tails = 0;
 var _betType = 0;
 
+
+ // *************************************************************************************************
+    // *            -------------------Main structure on page load--------------------------                       *                                                                            *
+    // *************************************************************************************************
+
 $(document).ready(function() {
   
     window.ethereum.enable();
-    // const accounts = web3.eth.requestAccounts();  
-    // console.log(accounts[0]);
-    // var account = await web3.eth.getAccounts();
     window.ethereum.enable().then(function(accounts) {
 
-        //define contract instance
        
         contractInstance = new web3.eth.Contract(abi, contract_address, {from: accounts[0]});
-        
-        // await connectMetamask();
         console.log(contractInstance);
 
     });
-    //we want to make a clickable button that executes our create person instance
-    //we can use j query but must include our function call in the window
-    //this represents the ID of our button tag in index.html
-    $("#deposit_button").click(deposit)
-
-    $("#add_bet_button").click(betData)
-
-    // contractInstance.once('LogNewProvableQuery', 
-    // {
-    //     filter: { player: getPlayer() },
-    //     fromBlock: 'latest'
-    // }, (error, event) => {
-    //     if(error) throw("Error fetching events");
-    //     // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
-    //     console.log("waiting for result");
-    // });
-
     
-
-
-    //to solve issue of clicking flip button when bet is loading
-    //wrap this call in a function so that it calls an instance of the
-    //contratcs is_loading function and only let syou click if true
-    $("#flip_coin_button").click(flipData)
-
-    // contractInstance.once('FlipResult', 
-    // {
-    //   filter: { player: getPlayer() },
-    //   fromBlock: 'latest'
-    // }, (error, event) => {
-    //   if(error) throw("Error fetching events");
-    //   console.log("oracle resolved");
-    // //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
-    // });
-  
-
+    //we have 4 main buttons. The deposit button/withdraw button which are
+    //restricted to the contract creator. The we have the betData and flipData
+    //buttons which the player used to execute the bet algorithm logic
+    $("#deposit_button").click(deposit)
+    $("#add_bet_button").click(betData)
+    $("#flip_coin_button").click(flipData);
     $("#withdraw_b").click(withdrawData)
 
+    //the menulist button shows a hover menu which have more buttons
+    //such as getBalance, dapp Rules, cancel bet Button and a choose
+    //betType button
     $("MenuList").hover(function(adminMenu){
        
     });
-
-    // $("#cancel_bet").click(CancelBet)
-
-
-
-    
-    //insyanciate the get data button
-   
-
 })
 
-async function connectMetamask() {
-    if (typeof window.ethereum !== undefined) { 
-      const accounts = await web3.eth.requestAccounts();  
-    //   let p = await getPlayerAddress();
-    //   jQuery("#playerAddress").text(p);
-    }
-  }
 
+ // *************************************************************************************************
+    // *            -------------------MONATAREY FUNCTIONS--------------------------                       *                                                                            *
+    // *************************************************************************************************
+
+
+//this function is seecuted when the admin clicks the depost button and it
+//calls our deposit function from the coinflip smart contract
 function deposit() {
 
     var depositAmount = $("#deposit_input_box").val();
@@ -93,34 +56,42 @@ function deposit() {
         value: web3.utils.toWei(String(depositAmount), "ether")
     }
 
-    // if (depositAmount == 0) {
-    //     return;
-    // }
-
     contractInstance.methods.deposit().send(config)
     //get transaction has on creation
-   
-    
 
 }
+
+function withdrawData() {
+
+    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+        $("#bet-output").text(String(balance) + " Eth");
+    })
+    console.log(balance);
+    contractInstance.methods.withdraw().send();
+
+}
+
+
+ // *************************************************************************************************
+    // *            -------------------MAIN FUNCTIONS--------------------------                       *                                                                            *
+    // *************************************************************************************************
+
+//this function is called when the player clicks the place bet button and this functiion calls
+//the setBet function in our smart contract which initialises a player bet and depositis the players 
+//bet amount into the contracts funds. We first call the getBetStatus function and if its true then we
+//set a var active to true and we use this to prevent the player clicking the place bet button again if 
+//they already have an unresolved bet. We do this by returning from the function if active == true. We then 
+//call the setBet function. On the genration of the transction hash we show the loader animation so that the player
+//knows the function is being processed, on the transction confirmation we conversly hide the loading anim
 function betData(){
 
-    // active = false;
-
-
-   
-    
     var h = contractInstance.methods.getBetStatus().call().then(function(res) {
         if (res == true) {
-            console.log("cannot make 2 bets");
-            console.log(res);
             active = true;
         }
         else {
             active = false;
         }
-
-        //make new popup
         
     })
 
@@ -136,36 +107,20 @@ function betData(){
         fromBlock: 'latest'
     }, (error, event) => {
         if(error) throw("Error fetching events");
-        // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
         console.log("bet init");
         var betisActive = true;
     });
+
     
     var betAmount = $("#bet_input").val();
-   //.val() gets the value 
-   
     var config = {
         value: web3.utils.toWei(String(betAmount), "ether")
     }
 
-    
-    //now that we have gotten our inut data via jQuery we can call out
-    //contratc function instance
-    ///we use .on() which is an event listener which we can use to get qlerts f
-    //for events
     const currentBet = contractInstance.methods.getCurrentBet().call()
 
 
     $("#bet_output").text(`You bet ${(String(betAmount))} ether`);
-    
-    // contractInstance.methods.setBet().call().then(function(res) {
-        // document.getElementById("loading").style.display ="flex";
-        
-        
-    // })
-    // contractInstance.methods.setBet().call().then(function() {
-        
-    // })
     contractInstance.methods.setBet(_betType).send(config)
         .on("transactionHash", function(hash) {
             $("#bet_output").text(`Confirming bet transaction..`);
@@ -203,15 +158,18 @@ function betData(){
 
 
 
-
+//this function is called when the player clicks the flipCoin button. We cannot call this function
+//if the player has not made a bet or is the player is waiting on the oracle result. We start off my 
+//asssertig that our active variable == true s that we can enter the function. We also call the event listener
+//which listenes out for the event which gets emmitted when the oracle has been resolve and has generated a random number#
+//(see contract code) It is only when this happens that we call the settleBet function which gets executed when the 
+//event listener has been resolved. However this takes a while so while the event listener is listeneing for out 
+//gemeratedRnadomNumber event we call the flipCoin function in the smart contract which is actually
+//the function which initially calls the oracle random number geneerator. It also does other things like
+//seting the waiitng for oracle maping to false. When the settel bet function is enetered we display a popup whoch
+//displays the result of the bet how much we won/Lost and we update our balance for the contract
 function flipData(){
 
-    // console.log(betisActive);
-    // if(betisActive) {
-    //     checkForBlankFlip();
-    //     return;
-    // }
-    // var status = checkForBlankFlip();
     if (active == false) {
         return;
     }
@@ -291,19 +249,11 @@ function flipData(){
                     
                 }
             })
-        
-
-
-
+    
         })
         
-
-
-
-    //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
     });
 
-    // loadLoader();
     
 
     var winAmount = $("#bet_input").val() * 2;
@@ -343,20 +293,6 @@ function flipData(){
             
            
     })
-    // .on("error", function(error) {
-    //     console.log("user denied transaction");
-    //     $("#bet_output").text("User denied the transaction");
-    //     $(".loading").hide();
-    // }).then(function() {
-    //     $(".loading").hide();
-
-    // })
-     
-
-
-
-    
-    
 
  
     const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
@@ -369,34 +305,30 @@ function flipData(){
    
 }
 
-function withdrawData() {
 
-    // const etherValue = Web3.utils.fromWei(String(withdrawAmount), 'ether');
-    // withdrawAmount * 2 * 10 ** 18;
-    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
-        $("#bet-output").text(String(balance) + " Eth");
-    })
-    console.log(balance);
-    contractInstance.methods.withdraw().send();
+ // *************************************************************************************************
+    // *            -------------------HELPER FUNCTIONS--------------------------                       *                                                                            *
+    // *************************************************************************************************
 
+
+//all of the following functions are helper functions for the User interface. Most of them are functions
+//that toggle the display of variouys popups. For exampple checkForbalnkWithdraw() and checkForBlankFlip() toggle
+//popups that alert the user that they cannot withdraw without specifying a withdrawal amount ot that they cannot
+//flip the coin without having previously placing a bet. Other functions like get player balance and the likes are also 
+//located below in this section
+function checkForBlankWithdraw() {
+    //handle in future by saying if isActive = flase then cannot flip coin
+    const balance = contractInstance.methods.getContratcBalance().call().then( function(res) {
+        if (res != 0) {
+            document.getElementById("popup-withdraw").classList.toggle("active");
+    
+        }
+    });
+    
 }
 
 function togglePopup() {
     document.getElementById("popup-1").classList.toggle("active");
-    // document.getElementById("btn").style.display = "none";;
-
-    // var balance = $("#balance_output").val();
-    // const Balance = contractInstance.methods.getActiveBets().call().then(function(res) {
-    //     console.log(res.length);
-    //     for (let i = 0; i < res.length; i++) {
-    //         for (let j = 0; j < res[i].length; j++) {
-    //             // $("#balance_output").text(res[j][i]);
-    //             console.log(res[i][j]);
-    //         }
-    //     }
-    //     $("#balance_output").text(res[1][1]);
-        
-    // })
 
     const Balance = contractInstance.methods.getContratcBalance().call().then(function(res) {
         res = res / 10 ** 18;
@@ -410,15 +342,6 @@ function togglePopup() {
             console.log(res1);
         })
     })
-
-    // contractInstance.methods.getBetTyp().call().then(function (rand) {
-    //     console.log(rand);
-    // });
-    
-
-    // getPlayerBalance().call().then(function(res) {
-    //     $("#User-balance_output").text(String(res));
-    // });
 
     var bals = getPlayerBalance() 
     console.log(bals);
@@ -468,35 +391,12 @@ function checkForBlankFlip() {
     
 }
 
-function checkForOracle() {
-    //handle in future by saying if isActive = flase then cannot flip coin
-    console.log("made it");
-    
-    // document.getElementById("popup-flip").classList.toggle("active");
-    
-
-    
-}
-
-function checkForBlankWithdraw() {
-    //handle in future by saying if isActive = flase then cannot flip coin
-    const balance = contractInstance.methods.getContratcBalance().call().then( function(res) {
-        if (res != 0) {
-            document.getElementById("popup-withdraw").classList.toggle("active");
-    
-        }
-    });
-    
-}
 
 function checkForLoad() {
     //handle in future by saying if isActive = flase then cannot flip coin
     
     document.getElementById("popup-load").classList.toggle("active");
-    // document.getElementById("Winnings").classList.toggle("a")
-    
-        
-    
+    // document.getElementById("Winnings").classList.toggle("a")  
     
 }
 
@@ -535,9 +435,6 @@ function adminMenu() {
             console.log("incorrect addres");
             document.getElementById("dropdown-2").style.display = "none";
         }
-        // if(adminMenu2()) {
-        //     document.getElementById("popup-admin").classList.toggle("active");
-        // }
     })
     
 }
@@ -562,36 +459,14 @@ function getPlayerBalance() {
     })
 }
 
+//this function toggles the display of the loading animiation when called
 function loadLoader() {
     
     $(".loading").show();
-        // $(".loader").fadeOut("slow");
-      
-
 }
 
-var clicked = false;
-function toggleBet() {
-
-    
-
-    if(!clicked) {
-        clicked = true;
-        document.getElementById("betType").innerHTML = "tails";
-        heads_tails = 1;
-        console.log(heads_tails);
-        
-        
-    }
-    else {
-        clicked = false;
-        document.getElementById("betType") .innerHTML = "heads";
-        heads_tails = 0;
-        console.log(heads_tails);
-       
-    }
-}
-
+//this function toggles the bet type when the player clicks the 2x bet/4x bet button in
+//the menu dropdown.
 var BetClicked = false;
 function toggleBetType() {
 
@@ -601,9 +476,6 @@ function toggleBetType() {
         BetClicked = true;
         document.getElementById("betType1").innerHTML = "2x Bet";
         _betType = 1;
-        // contractInstance.methods.getBetType().call().then(function (res) {
-        //     console.log(res);
-        // })
         console.log(_betType);
        
         
@@ -612,9 +484,6 @@ function toggleBetType() {
         BetClicked = false;
         document.getElementById("betType1") .innerHTML = "4x Bet";
         _betType = 0;
-        // contractInstance.methods.getBetType().call().then(function (res) {
-        //     console.log(res);
-        // })
         console.log(_betType);
         
     }
