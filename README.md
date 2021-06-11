@@ -11,3 +11,24 @@ bet at a time. They do have the option to cancel their bet but they can only do 
 their bet. Also once they flip the coin they cannot reflip to try cheat the system until the random oracle number has been generated and the bet has been resolved.
 
 Below are instructions on how to clone this repositorys code and use it for yourself on your loacl machine
+
+# Prereqruises
+to use this code you need to have truffle installed on your machine to run and test the code. To install truffle you first need to install node.js. You can install node through this link. https://nodejs.org/en/ I reccomend using v14. Once node.js is installed open your cmd or terminal and install truffle using ``npm install -g truffle``. this project was coded node.js **v14.16.0** and using truffle **v5.3.2** so to remain consistent with me install truffle using ``npm install -g truffle@5.3.2``. Once truffle has been installed successfully follow the steps below to clone and begin using the project code
+
+# Step 1
+to use this repository for yourself there are a few steps you need to follow. Firstly create a new directory somewhere in your computer. Open your cmd or terminal in that directory. Once you do so come back to ths repository and copy the repository link. You can get it by clicking the "green" code bytton on the main branch page of this repo. Onc done type ``git clone`` into your terminal a space and then paste the repo link.
+
+# step 2
+Once cloned successsfully, **(type ``code .`` if you use VS code to open the folder in Code. If you use another editor this will not apply to you)**. while remaining in your terminal type ``cd CoinflipDapp/`` to change intot the directory with the code. The node and truffle dependancyies will already come preinstalled so there is no need to to type ``npm  init`` or ``truffle init``. To compile the code navigate into the backend directory by typing ``cd Backend/`` and typing ``truffle migrate --network kovan --reset``. You need to deploy to a testnet in order to use this project because the chainlink random oracle does not work on local deployment chains such as ``truffle develop`` or the  ``truffle console`` enviornments. Note that most likley deploying to the kovan testnet using the command above will take multiple efforts (sometimes up to 5 or more) dont worry this is normal. Do not however, that once you run the command once, every other time you should run ``truffle migrate --network kovan`` instead.  
+
+# step 4
+Once you have successfully deployed to the kovan testnet open up a new terminal inside the frontEnd diectory. Make sure you open a new terminal do not use your current terminal which is in the backend directory. ONce in the front end directpry start up a local server to load the front end user interface by running ``python -m http.server 8000``. To do this you need to have python 3 installed on your machine. Their are plently of tutorials on youtube.
+
+# Step 3
+Have a look through the code and see what functions there are. To use this code in truffle develope initialise the dex, eth and link tokens by typing ``let dex = await Dex.deployed``. ``let eth = await Eth.deployed`` etc... When initialised simply type ``dex``, or ``eth`` to get a list of all of the functions that you can use with the instance. To know what arguments they take simply refer to the code. The way we set up the dex can be seen with the tests written in the test folder
+
+#step 4
+One final thing that may not be installed im not sure is the truffle assertions. We need these to run the ``truffle test`` command which will run all of the 15 tests i have written. If you type "truffle test" into the console and nothing happens or you dont get 15 passes then maybe try installing truffle assertions with ``npm install truffle-assertions``. This is not the most important as i have already tested the code briefly. But if you want to change and modify for yourself its a god ideaa to get the premade tests working with truffle assertions.
+
+# Enjoy
+
