@@ -27,8 +27,17 @@ Once you have successfully deployed to the kovan testnet open up a new terminal 
 # Step 3
 Have a look through the code and see what functions there are. To use this code in truffle develope initialise the dex, eth and link tokens by typing ``let dex = await Dex.deployed``. ``let eth = await Eth.deployed`` etc... When initialised simply type ``dex``, or ``eth`` to get a list of all of the functions that you can use with the instance. To know what arguments they take simply refer to the code. The way we set up the dex can be seen with the tests written in the test folder
 
-#step 4
+# step 4
 One final thing that may not be installed im not sure is the truffle assertions. We need these to run the ``truffle test`` command which will run all of the 15 tests i have written. If you type "truffle test" into the console and nothing happens or you dont get 15 passes then maybe try installing truffle assertions with ``npm install truffle-assertions``. This is not the most important as i have already tested the code briefly. But if you want to change and modify for yourself its a god ideaa to get the premade tests working with truffle assertions.
 
 # Enjoy
+
+# DEMO Of the App & UI Screenshots
+
+Link to a video demo of the app
+https://vimeo.com/manage/videos/561853762
+
+Screenshot of the UI
+![dapp screenshot](https://user-images.githubusercontent.com/40043037/121742744-2cf6bd00-caf8-11eb-8b84-2dc0d176265f.PNG)
+
 
