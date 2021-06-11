@@ -47,7 +47,9 @@ contract CoinFlip is VRFConsumerBase{
     mapping(address => Player) player;                  //player struct has attributes such as address, betAmount, player ID
     mapping(address => uint256) contratcBalance;        //contratc balance mappping
     mapping(address => uint) betType;
-    mapping(address => bool) flipped;
+    mapping(address => bool) flipped; 
+    mapping(address => uint) outcome;
+    
 
     //initial vars set id globally increment each time a player is made
     //NUM random bytes is how much bytes we request from the oracle 1 = range(0, 256) bytes
@@ -120,7 +122,15 @@ contract CoinFlip is VRFConsumerBase{
         playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
         playerOracleqQuerey[player[msg.sender].id].id = requestId;
         queryLog.push(OracleQuery(requestId, msg.sender));
-        RandomResult = randomness % 2;
+        if (betType[msg.sender] == 0) {
+            RandomResult = randomness % 2;
+
+        }
+        else {
+            RandomResult = randomness % 4;
+
+        }
+        
        
 
         emit  generatedRandomNumber(RandomResult);
@@ -133,28 +143,29 @@ contract CoinFlip is VRFConsumerBase{
 
     
     
-    function setBet() public betConditions payable  {
+    function setBet(uint _betType) public betConditions payable  {
 
         //initalize a player#
-        string memory betTy;
-        uint result = getBetTyp();
-        if(result == 1) {
-            betTy = "Heads";
+        string memory result;
+        if(_betType == 1) {
+            result = "Heads";
+            betType[msg.sender] = 1;
         }else {
-            betTy = "Tails";
+            result = "Tails";
+            betType[msg.sender] = 0;
         }
         
         player[msg.sender].playerAddress = msg.sender;
         player[msg.sender].betAmount = msg.value;
         player[msg.sender].hasWon = false;
-        player[msg.sender].bet_type = betTy;
+        player[msg.sender].bet_type = result;
         player[msg.sender].id = _id;
 
         //push the player to the betLog
-        betLog.push(Player(msg.sender, msg.value, false, betTy, _id));
+        betLog.push(Player(msg.sender, msg.value, false, result, _id));
         isActive[msg.sender] = true;
         flipped[msg.sender] = false;
-        waitingForOracle[msg.sender] == false;
+        waitingForOracle[msg.sender] = false;
 
         //set waiting for oracle result to true
         //and update balances / id accordingly
@@ -234,6 +245,7 @@ contract CoinFlip is VRFConsumerBase{
 
         //delete player result for fresh new bet
         //delete player oracle querey for fresh bet als
+        waitingForOracle[msg.sender] = false;
         isActive[msg.sender] = false;
 
         // emit balanceUpdated(msg.sender, playerbalance[msg.sender], oldPlayerBalance);
@@ -283,19 +295,6 @@ contract CoinFlip is VRFConsumerBase{
     }
 
     
-    function chooseBetType(uint typeOfBet) public returns (uint) {
-        
-        require(isActive[msg.sender] == false);
-        
-        if(typeOfBet == 1) {
-            betType[msg.sender] = 1;
-        }else {
-            betType[msg.sender] = 0;
-        }
-        
-        return betType[msg.sender];
-    }
-    
      function canCelBet() public {
         
         require(betLog.length > 0);
@@ -311,7 +310,7 @@ contract CoinFlip is VRFConsumerBase{
         
     }
     
-    function getBetTyp() public view returns (uint) {
+    function getBetType() public view returns (uint) {
         return betType[msg.sender];
     }
    

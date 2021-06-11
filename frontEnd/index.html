@@ -17,20 +17,23 @@
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700|Montserrat:300" rel="stylesheet">
   </head>
   <body >
-
-    <!-- <div class="loader1">
+   
+    <div class="loader1">
       <img src="./assets/LoadingGif.gif" alt="Loading..." />
     </div>
 
   <script>
     
+    
     $(window).on("load", function() {
+      $(".loading").hide();
       $(".loader1").fadeOut("slow");
+      
       
     })
   </script>
 
-<div id ="loading" class="loader">
+<!-- <div id ="loading" class="loader">
   <img src="./assets/LoadingGif.gif" alt="Loading..." />
 </div>
 
@@ -71,9 +74,9 @@ $(window).on("load", function() {
             </a>
             <ul  class="dropdown1" >
                <li onclick="togglePopup()" class = "menuDropdown"><a href="#">Get Balance</a></li>
-               <li><a id="betType" onclick="toggleBet()" href="#">Tails</a></li>
-               <li><a href="#">Bet Log</a></li>
+               <li><a id ="betType1" onclick="toggleBetType()" href="#">2x Bet</a></li>
                <li onclick="toggleRulesPopup()"><a href="#">How To Play</a></li>
+               <li onclick="toggleRulesPopup()"><a href="#">Cancel Bet</a></li>
             </ul>
          </li>
          <li class="ad">
@@ -116,10 +119,14 @@ $(window).on("load", function() {
       
       </div>
       <div class="bet-output">
+        
         <div style = "font-size: 20px;" id="status_updates">
+          
           <span id="bet_output"></span>
         </div>
+        <div class="loading loading--full-height"></div>
         <p></p>
+        
         <div>
           <span id="status_output"></span>
         </div>
@@ -183,6 +190,13 @@ $(window).on("load", function() {
         </div>
         <br>
         <div class="rules">
+          You can choose between two types of bets. double
+          your money with 50% odds or quradruple your money
+           with 25% odds. Choose your bet type in the menu
+           tab. The default is set to double your money
+        </div>
+        <br>
+        <div class="rules">
           1. Place your bet. You can have only one
           active bet at a time
         </div>
@@ -205,10 +219,17 @@ $(window).on("load", function() {
         <div class="rules">
           5. You cannot bet more than half of the total
              amount locked in the smart contratc balance
+             for bet type 1 
         </div>
         <br>
         <div class="rules">
-          6. The minimum bet size is 0.001 ether
+          6. You cannot bet more than quarter of the total
+             amount locked in the smart contratc balance
+             for bet type 2 
+        </div>
+        <br>
+        <div class="rules">
+          7. The minimum bet size is 0.001 ether
         </div>
         <br>
         <br>
@@ -232,6 +253,31 @@ $(window).on("load", function() {
       </div>
     </div>
 
+    <div class="input-popup" id="popup-active">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForActiveBet()">×</div>
+        <div class="input-popup-msg" style="color: #fff;">
+          You cannot place more than one bet at a time.
+          Resolve your current bet first
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    <div class="input-popup" id="popup-oracle">
+      <div class="overlay"></div>
+      <div class="content">
+        <div class="close-btn" onclick="checkForActiveOracle()">×</div>
+        <div class="input-popup-msg" style="color: #fff;">
+          You cannot flip the coin whilst waiting for oracle
+          result. Relove your bet first.
+        </div>
+        <!-- <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Illo aspernatur laborum rem sed laudantium excepturi veritatis voluptatum architecto, dolore quaerat totam officiis nisi animi accusantium alias inventore nulla atque debitis.</p> -->
+      </div>
+    </div>
+
+    
     <div class="admin-popup" id="popup-admin">
       <div class="overlay"></div>
       <div class="content">

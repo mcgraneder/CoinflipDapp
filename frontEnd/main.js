@@ -1,9 +1,14 @@
 var web3 = new Web3(Web3.givenProvider);
 var contractInstance;
-contract_address = "0xf790AB97bc33714859822167Ca5Ef005E53542f3";
+contract_address = "0x964E19399fe7FdDb9522E4026D4217D0946c2dEd";
 var Stop;
 var exit;
 var acc1;
+var betisActive = false;
+var active;
+var waitingForOracle;
+var heads_tails = 0;
+var _betType = 0;
 
 $(document).ready(function() {
   
@@ -61,7 +66,11 @@ $(document).ready(function() {
 
     $("MenuList").hover(function(adminMenu){
        
-      });
+    });
+
+    // $("#cancel_bet").click(CancelBet)
+
+
 
     
     //insyanciate the get data button
@@ -96,40 +105,41 @@ function deposit() {
 }
 function betData(){
 
-    // contractInstance.methods.hasWon().call().then(function (randomNum) {
-    //     console.log(randomNum);
-    //     if(randomNum == true) {
-    //         console.log("The random number is one")
-    //     }
-    //     else {
-    //         console.log("The random number is 0");
-    //         // return(res.data);
-    //     }
-    // });
-    // $("#loading").show();
-    // document.getElementById("loading").style.display ="flex";
-    // loadLoader();
-//     $("#bet_output").text("Confirming bet Transaction..");
-    
-//     contractInstance.once('generatedRandomNumber', 
-//     {
-//         filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
-//         fromBlock: 'latest'
-//     }, (error, event) => {
-//         if(error) throw("Error fetching events");
-//         // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
-//         console.log("waiting for result");
-//     });
+    // active = false;
 
-//     contractInstance.once('betInitialized', 
-//     {
+
+   
+    
+    var h = contractInstance.methods.getBetStatus().call().then(function(res) {
+        if (res == true) {
+            console.log("cannot make 2 bets");
+            console.log(res);
+            active = true;
+        }
+        else {
+            active = false;
+        }
+
+        //make new popup
+        
+    })
+
+    if (active == true) {
+        checkForActiveBet();
+        return;
+    }
+
+
+    contractInstance.once('betInitialized', 
+    {
        
-//         fromBlock: 'latest'
-//     }, (error, event) => {
-//         if(error) throw("Error fetching events");
-//         // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
-//         console.log("bet init");
-//     });
+        fromBlock: 'latest'
+    }, (error, event) => {
+        if(error) throw("Error fetching events");
+        // jQuery("#events").text(`User ${event.returnValues.player} is waiting for the flip result`);
+        console.log("bet init");
+        var betisActive = true;
+    });
     
     var betAmount = $("#bet_input").val();
    //.val() gets the value 
@@ -156,8 +166,153 @@ function betData(){
     // contractInstance.methods.setBet().call().then(function() {
         
     // })
-    contractInstance.methods.setBet().send(config)
+    contractInstance.methods.setBet(_betType).send(config)
+        .on("transactionHash", function(hash) {
+            $("#bet_output").text(`Confirming bet transaction..`);
+            console.log(hash);
+            loadLoader();
+            
+        })
+        //get confirmation message on confirmation
+        .on("confirmation", function(confirmationNr) {
+            console.log(confirmationNr);
+            
+
+        })
+        //get receipt when ransaction is first mined
+        .on("receipt", function(receipt) {
+            console.log(receipt);
+            alert("Transaction successful");
+            $(".loader").hide();
+            $("#bet_output").text("You can now flip the coin");
+
+
+
+        }).on("error", function(error) {
+            console.log("user denied transaction");
+            $("#bet_output").text("User denied the transaction");
+            $(".loading").hide();
+            
+        }).then(function() {
+            $(".loading").hide();
+
+        })
+    
+   
+}
+
+
+
+
+function flipData(){
+
+    // console.log(betisActive);
+    // if(betisActive) {
+    //     checkForBlankFlip();
+    //     return;
+    // }
+    // var status = checkForBlankFlip();
+    if (active == false) {
+        return;
+    }
+    if (waitingForOracle == true) {
+        checkForActiveOracle();
+        return;
+    }
+
+    contractInstance.once('generatedRandomNumber', 
+        {
+        filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
+        fromBlock: 'latest'
+        }, (error, event) => {
+        if(error) throw("Error fetching events");
+        console.log("oracle resolved");
+        $("#bet_output").text(`Bet Settled. Loading Result..`);
+
+        var winAmount = $("#bet_input").val() * 2;
+        var looseAmount = $("#bet_input").val();
+
+        var randomN = contractInstance.methods.getRandomNumber().call().then(function (rand) {
+            console.log(rand);
+            if(rand == 1) {
+                console.log("you won congrats")
+            }
+            else if (rand == 0) {
+                console.log("unlucky you lost");
+                // return(res.data);
+            }
+
+            contractInstance.methods.settleBet().send().then(function (out) {
+                waitingForOracle = false;
+                console.log("entered settle bet func")
+                $(".loading").hide();
+                active = false;
+                if(rand == 1) {
+                    checkForLoad();
+                    setTimeout(function () {
+                        $("#win-loose").text("Congratulations. You won!");
+                    }, 3500)
+    
+                    setTimeout(function () {
+                        $("#win-loose-prize").text("Winnings:\n" + String(winAmount) + " Eth");
+                    }, 4500)
+    
+                    setTimeout(function () {
+                        const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+                            $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
+                        });
+                    
+                    }, 5000)
+                    $(".loader").hide();
+                    $("#bet_output").text("Congratulations! You won");
+                    // $("#bet-output").text("You won " + String(balance) + " Eth");
+                }
+                else {
+    
+                    checkForLoad();
+                    setTimeout(function () {
+                        $("#win-loose").text("Oops you lost. Hard luck!");
+                    }, 3500)
+    
+                    setTimeout(function () {
+                        $("#win-loose-prize").text("Loosings:\n" + String(looseAmount) + " Eth");
+                    }, 4500)
+    
+                    setTimeout(function () {
+                        const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
+                            $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
+                        });
+                    
+                    }, 5000)
+                    $("#bet-output").text("You won " + String(balance) + " Eth");
+                    $(".loader").hide();
+                    $("#bet_output").text("Hard luck you lost");
+                    
+                    
+                }
+            })
+        
+
+
+
+        })
+        
+
+
+
+    //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
+    });
+
+    // loadLoader();
+    
+
+    var winAmount = $("#bet_input").val() * 2;
+    var looseAmount = $("#bet_input").val();
+    
+    contractInstance.methods.flipCoin().send()
     .on("transactionHash", function(hash) {
+        $("#bet_output").text("Flipping the coin..");
+        waitingForOracle = true;
         console.log(hash);
         loadLoader();
 
@@ -171,116 +326,36 @@ function betData(){
     //get receipt when ransaction is first mined
     .on("receipt", function(receipt) {
         console.log(receipt);
-        loadLoader();
         alert("Transaction successful");
-        
-        $("#bet_output").text("You can now flip the coin");
-
-
-    }).then(function() {
-        // document.getElementById("loading").style.display ="none";
         $(".loader").hide();
+        $("#bet_output").text("Retrieving Bet output from Oracle..");
+
+
+
+    }).on("error", function(error) {
+        console.log("user denied transaction");
+        $("#bet_output").text("User denied the transaction");
+        $(".loading").hide();
         
-
-    })
-
-   
-}
-
-
-
-
-function flipData(){
-
-    contractInstance.once('generatedRandomNumber', 
-        {
-        filter: { player: "0xfEE3865AfdDF38fB691C7bE3AabCCDeB96b34499" },
-        fromBlock: 'latest'
-        }, (error, event) => {
-        if(error) throw("Error fetching events");
-        console.log("oracle resolved");
-
-        var winAmount = $("#bet_input").val() * 2;
-        var looseAmount = $("#bet_input").val();
-        contractInstance.methods.settleBet().send().then(function (out) {
-            console.log("entered settle bet func")
-            var res = 1;
-            if(res == 1) {
-                checkForLoad();
-                setTimeout(function () {
-                    $("#win-loose").text("Congratulations. You won!");
-                }, 3500)
-
-                setTimeout(function () {
-                    $("#win-loose-prize").text("Winnings:\n" + String(winAmount) + " Eth");
-                }, 4500)
-
-                setTimeout(function () {
-                    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
-                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
-                    });
-                
-                }, 5000)
-                $(".loader").hide();
-                $("#bet_output").text("Congratulations! You won");
-                // $("#bet-output").text("You won " + String(balance) + " Eth");
-            }
-            else {
-
-                checkForLoad();
-                setTimeout(function () {
-                    $("#win-loose").text("Oops you lost. Hard luck!");
-                }, 3500)
-
-                setTimeout(function () {
-                    $("#win-loose-prize").text("Loosings:\n" + String(looseAmount) + " Eth");
-                }, 4500)
-
-                setTimeout(function () {
-                    const balance = contractInstance.methods.getContratcBalance().call().then(function(balance) {
-                        $("#win-loose-balance").text("Balance:\n" + String(balance) + " Eth");
-                    });
-                
-                }, 5000)
-                $("#bet-output").text("You won " + String(balance) + " Eth");
-                $(".loader").hide();
-                $("#bet_output").text("Hard luck you lost");
-                
-                
-            }
-        })
-    
-
-
-
-    //   jQuery("#events").text(`User ${event.returnValues.player} won: ${event.returnValues.won}`);
-    });
-
-    loadLoader();
-    $("#bet_output").text("Retrieving Bet output from Oracle");
-
-    var winAmount = $("#bet_input").val() * 2;
-    var looseAmount = $("#bet_input").val();
-    var randomN = contractInstance.methods.getRandomNumber().call().then(function (rand) {
-        console.log(rand);
-        if(rand == 1) {
-            console.log("you won congrats")
-        }
-        else if (rand == 0) {
-            console.log("unlucky you lost");
-            // return(res.data);
-        }
-        contractInstance.methods.flipCoin().send().then(function (res) {
-            console.log("calling oracle");
+    }).then(function (res) {
+        console.log("calling oracle");
             
             
            
-        })
+    })
+    // .on("error", function(error) {
+    //     console.log("user denied transaction");
+    //     $("#bet_output").text("User denied the transaction");
+    //     $(".loading").hide();
+    // }).then(function() {
+    //     $(".loading").hide();
+
+    // })
      
 
 
 
-    })
+    
     
 
  
@@ -336,9 +411,9 @@ function togglePopup() {
         })
     })
 
-    contractInstance.methods.getBetTyp().call().then(function (rand) {
-        console.log(rand);
-    });
+    // contractInstance.methods.getBetTyp().call().then(function (rand) {
+    //     console.log(rand);
+    // });
     
 
     // getPlayerBalance().call().then(function(res) {
@@ -373,12 +448,33 @@ function checkForBlank() {
 
 function checkForBlankFlip() {
     //handle in future by saying if isActive = flase then cannot flip coin
-    const isActive = contractInstance.methods.getCurrentBet().call().then( function(res) {
-        if (res == 0) {
+    console.log("made it");
+    
+    // document.getElementById("popup-flip").classList.toggle("active");
+    contractInstance.methods.getBetStatus().call().then( function(res) {
+        console.log(res);
+        if (res == false) {
+            active = false;
             document.getElementById("popup-flip").classList.toggle("active");
     
         }
+        else {
+            active = true;
+        }
+
+        return active;
     });
+
+    
+}
+
+function checkForOracle() {
+    //handle in future by saying if isActive = flase then cannot flip coin
+    console.log("made it");
+    
+    // document.getElementById("popup-flip").classList.toggle("active");
+    
+
     
 }
 
@@ -468,7 +564,7 @@ function getPlayerBalance() {
 
 function loadLoader() {
     
-    $(".loader").show();
+    $(".loading").show();
         // $(".loader").fadeOut("slow");
       
 
@@ -482,18 +578,61 @@ function toggleBet() {
     if(!clicked) {
         clicked = true;
         document.getElementById("betType").innerHTML = "tails";
-        contractInstance.methods.chooseBetType(0).send().then(function (res) {
-            console.log(res);
-        })
+        heads_tails = 1;
+        console.log(heads_tails);
+        
         
     }
     else {
         clicked = false;
         document.getElementById("betType") .innerHTML = "heads";
-        contractInstance.methods.chooseBetType(1).send().then(function (res) {
-            console.log(res);
-        })
+        heads_tails = 0;
+        console.log(heads_tails);
+       
     }
 }
+
+var BetClicked = false;
+function toggleBetType() {
+
+    
+
+    if(!BetClicked) {
+        BetClicked = true;
+        document.getElementById("betType1").innerHTML = "2x Bet";
+        _betType = 1;
+        // contractInstance.methods.getBetType().call().then(function (res) {
+        //     console.log(res);
+        // })
+        console.log(_betType);
+       
+        
+    }
+    else {
+        BetClicked = false;
+        document.getElementById("betType1") .innerHTML = "4x Bet";
+        _betType = 0;
+        // contractInstance.methods.getBetType().call().then(function (res) {
+        //     console.log(res);
+        // })
+        console.log(_betType);
+        
+    }
+}
+
+function checkForActiveBet() {
+
+    document.getElementById("popup-active").classList.toggle("active");
+
+}
+
+function checkForActiveOracle() {
+
+    document.getElementById("popup-oracle").classList.toggle("active");
+
+}
+
+
+
 
 

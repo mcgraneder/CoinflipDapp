@@ -350,7 +350,7 @@
     background:rgb(30, 12, 58);
     width:95%;
     max-width:600px;
-    height:430px;
+    height:600px;
     z-index:2;
     text-align: left;
     padding:20px;
@@ -535,3 +535,37 @@
     }
 }
 
+.loading {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .loading--full-height {
+    align-items: center;
+    height: 70%;
+  }
+  
+  .loading::after {
+    content: "";
+    width: 50px;
+    height: 50px;
+    border: 6px solid #dddddd;
+    border-top-color: #2d70ff;
+    border-radius: 50%;
+    transform: rotate(0.16turn);
+    animation: loading 1s ease infinite;
+  }
+  
+  @keyframes loading {
+    /* Safari support */
+    from {
+      transform: rotate(0turn);
+    }
+    
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+
+  

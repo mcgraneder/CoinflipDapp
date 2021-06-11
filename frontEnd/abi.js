@@ -46,25 +46,6 @@ var abi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "oldOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnerSet",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
         "indexed": false,
         "internalType": "address",
         "name": "player",
@@ -202,47 +183,6 @@ var abi = [
     "constant": true
   },
   {
-    "inputs": [],
-    "name": "betWin",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "changeOwner",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getOwner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -286,7 +226,13 @@ var abi = [
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_betType",
+        "type": "uint256"
+      }
+    ],
     "name": "setBet",
     "outputs": [],
     "stateMutability": "payable",
@@ -325,19 +271,27 @@ var abi = [
     "payable": true
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "typeOfBet",
-        "type": "uint256"
-      }
-    ],
-    "name": "chooseBetType",
+    "inputs": [],
+    "name": "Flipped",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function",
+    "constant": true
+  },
+  {
+    "inputs": [],
+    "name": "notWaiting",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "nonpayable",
@@ -345,7 +299,14 @@ var abi = [
   },
   {
     "inputs": [],
-    "name": "getBetTyp",
+    "name": "canCelBet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getBetType",
     "outputs": [
       {
         "internalType": "uint256",
@@ -487,6 +448,11 @@ var abi = [
             "internalType": "bool",
             "name": "hasWon",
             "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "bet_type",
+            "type": "string"
           },
           {
             "internalType": "uint256",
