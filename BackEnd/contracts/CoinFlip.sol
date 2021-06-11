@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 import "./VRFConsumerBase.sol";
 import "./OnlyOwner.sol";
 
-contract CoinFlip is VRFConsumerBase{
+contract CoinFlip is VRFConsumerBase, Owner{
 
 
     // *************************************************************************************************
