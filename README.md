@@ -12,7 +12,7 @@ their bet. Also once they flip the coin they cannot reflip to try cheat the syst
 
 Below are instructions on how to clone this repositorys code and use it for yourself on your loacl machine
 
-# Prereqruises
+# Prereqruisites
 to use this code you need to have truffle and node.js installed on your machine to run the code. You also need to have the MetaMask chrome browser wallet extesion installed. To install truffle you first need to install node.js. You can install node through this link. https://nodejs.org/en/ I reccomend using v14. Once node.js is installed open your cmd or terminal and install truffle using ``npm install -g truffle``. this project was coded node.js **v14.16.0** and using truffle **v5.3.2** so to remain consistent with me install truffle using ``npm install -g truffle@5.3.2``. Once truffle has been installed successfully follow the steps below to clone and begin using the project code
 
 # Step 1
