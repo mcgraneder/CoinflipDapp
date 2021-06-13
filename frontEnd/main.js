@@ -474,7 +474,7 @@ function toggleBetType() {
 
     if(!BetClicked) {
         BetClicked = true;
-        document.getElementById("betType1").innerHTML = "2x Bet";
+        document.getElementById("betType1").innerHTML = "4x Bet";
         _betType = 1;
         console.log(_betType);
        
@@ -482,7 +482,7 @@ function toggleBetType() {
     }
     else {
         BetClicked = false;
-        document.getElementById("betType1") .innerHTML = "4x Bet";
+        document.getElementById("betType1") .innerHTML = "2x Bet";
         _betType = 0;
         console.log(_betType);
         

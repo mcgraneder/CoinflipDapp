@@ -3,10 +3,11 @@ pragma solidity >=0.4.22 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 // import "https://raw.githubusercontent.com/smartcontractkit/chainlink/master/evm-contracts/src/v0.6/VRFConsumerBase.sol";
-import "./VRFConsumerBase.sol";
+// import "./VRFConsumerBase.sol";
 import "./OnlyOwner.sol";
+import "./ProvableABI.sol";
 
-contract CoinFlip is VRFConsumerBase, Owner{
+contract CoinFlip is usingProvable{
 
 
     // *************************************************************************************************
@@ -54,11 +55,12 @@ contract CoinFlip is VRFConsumerBase, Owner{
     //initial vars set id globally increment each time a player is made
     //NUM random bytes is how much bytes we request from the oracle 1 = range(0, 256) bytes
     //initilaise Player array which will store each instance of a player bet for lookups
-    uint256 public RandomResult;
+    uint public RandomResult;
     uint  private _id = 0;
     uint private contractBalance;
     bytes32 internal keyHash;
     uint256 internal fee;
+     uint private constant NUM_RANDOM_BYTES_REQUESTED = 1;
     Player[] betLog;
     OracleQuery[] queryLog;
     
@@ -70,7 +72,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
     //We initialise the contract balance to zero and we also define th ekeyHash and fee which are
     //required to query the chainlink oracle for a random number. We also need the chainlink token address as
     //the oracle fee is paid in chainlink not ether
-    constructor() VRFConsumerBase( 0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9, 0xa36085F69e2889c224210F603D836748e7dC0088) public {
+    constructor()  public {
         
         
         contratcBalance[address(this)] = 0;
@@ -110,37 +112,89 @@ contract CoinFlip is VRFConsumerBase, Owner{
     //the random number is settled for use in the settleBet function which gets called after 
     //flipCoin(). This function requires us to send the "fee" to the chainlink oracle for using it.
     //This fee is paid in chainlink. See constructor
-    function getRandomNumber(uint256 userProvidedSeed) private returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee, userProvidedSeed);
-    }
+    // function getRandomNumber(uint256 userProvidedSeed) private returns (bytes32 requestId) {
+    //     require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+    //     return requestRandomness(keyHash, fee, userProvidedSeed);
+    // }
 
-    /**
-     * Callback function used by VRF Coordinator
-     */
-     //here we store the oracle request id in the playerOracle mapping and we also push 
-     //the oracle request id and the address of the oracle caller to the queryLog which is 
-     //an array which keeps track of all of the players who requested a random number off
-     //of the oracle. We then define the random number. Its either a 0 or 1 if the bet is set 
-     //to type 1 (50/50) and its either 0, 1 2, 3 or 4 for bet type 2 (25% odds)
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+    // /**
+    //  * Callback function used by VRF Coordinator
+    //  */
+    //  //here we store the oracle request id in the playerOracle mapping and we also push 
+    //  //the oracle request id and the address of the oracle caller to the queryLog which is 
+    //  //an array which keeps track of all of the players who requested a random number off
+    //  //of the oracle. We then define the random number. Its either a 0 or 1 if the bet is set 
+    //  //to type 1 (50/50) and its either 0, 1 2, 3 or 4 for bet type 2 (25% odds)
+    // function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         
         
+    //     oracleQuereyID[msg.sender] = requestId;
+    //     playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
+    //     playerOracleqQuerey[player[msg.sender].id].id = requestId;
+    //     queryLog.push(OracleQuery(requestId, msg.sender));
+    //     if (betType[msg.sender] == 0) {
+    //         RandomResult = randomness % 2;
+
+    //     }
+    //     else {
+    //         RandomResult = randomness % 4;
+
+    //     }
+
+    //     emit  generatedRandomNumber(RandomResult);
+    // }
+
+    //update funcion
+    function _update() internal {
+
+        //set execution delay to 0 and set the gas required
+        //to pay for the oracle for submitting a querey
+        uint QUERY_EXECUTION_DELAY = 0;
+        uint GAS_FOR_CALLBACK =200000;
+
+        //submit the oracle querey, this function is called from
+        //the provableABI contratc
+        bytes32 requestId = provable_newRandomDSQuery(QUERY_EXECUTION_DELAY, NUM_RANDOM_BYTES_REQUESTED, GAS_FOR_CALLBACK);
+        // bytes32 query_id = testRandom();
+
+        //after the oracle querey is settled store the result in the player
+        //Oracle querey struct allows us to distingish between players
+        // playerOracleqQuerey[query_id].id = query_id;
+        // playerOracleqQuerey[query_id].playerAddress = msg.sender;
         oracleQuereyID[msg.sender] = requestId;
         playerOracleqQuerey[player[msg.sender].id].playerAddress = msg.sender;
         playerOracleqQuerey[player[msg.sender].id].id = requestId;
-        queryLog.push(OracleQuery(requestId, msg.sender));
-        if (betType[msg.sender] == 0) {
-            RandomResult = randomness % 2;
+        // qid[msg.sender] = query_id;
 
-        }
-        else {
-            RandomResult = randomness % 4;
-
-        }
-
-        emit  generatedRandomNumber(RandomResult);
+        //emit LogNewProvableQuery(msg.sender);
     }
+
+    //call back function is called by the oracle once the querey has been settled. 
+    //thia function is caled via the provableABI contract. It finalises the random result
+    function __callback(bytes32 _queryId, string memory _result, bytes memory _proof) public {
+        //require(msg.sender == provable_cbAddress());
+
+        //store the oracle generated random num
+        //update the player result mapping accordingly
+        //set waiting for oracle to false
+        // RandomResult = _result;
+        // result[msg.sender] = randomNumber;
+        waitingForOracle[msg.sender] = false;
+        if (provable_randomDS_proofVerify__returnCode(_queryId, _result, _proof) == 0){
+            if (betType[msg.sender] == 0) {
+                RandomResult = uint(keccak256(abi.encodePacked(_result)))%2;
+            }
+            else {
+                RandomResult = uint(keccak256(abi.encodePacked(_result)))%4;
+            }
+        
+        // settleBet(randomNumber, _queryId);
+        emit generatedRandomNumber(RandomResult);
+        }
+        // flipCoin(randomNumber);
+        // return(randomNumber);
+    }
+
     
     
     // *************************************************************************************************
@@ -205,7 +259,8 @@ contract CoinFlip is VRFConsumerBase, Owner{
         
         waitingForOracle[msg.sender] = true;
         flipped[msg.sender] = true;
-        getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
+        // getRandomNumber(uint256(keccak256(abi.encodePacked(msg.sender, block.timestamp))));
+        _update();
         
         emit coinFlipped(msg.sender, player[msg.sender].id, isActive[msg.sender]);
       
@@ -229,7 +284,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
         
         require(flipped[msg.sender] == true);
         require(isActive[msg.sender]);
-        require(waitingForOracle[msg.sender] == false);
+        // require(waitingForOracle[msg.sender] == false);
         
         if (RandomResult == 1) {
             player[msg.sender].hasWon = true;
@@ -280,7 +335,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
     // *************************************************************************************************
 
     //this function lets the admin or contratc creator withdraw the entire contratc balance
-    function withdraw() public payable isOwner  {
+    function withdraw() public payable  {
        
         msg.sender.transfer(contratcBalance[address(this)]);
         contratcBalance[address(this)]-= contratcBalance[address(this)];
@@ -291,7 +346,7 @@ contract CoinFlip is VRFConsumerBase, Owner{
     
 
     //this function lets the contract creator deposit funds into the contract
-    function deposit() public payable isOwner {
+    function deposit() public payable {
         // playerbalance[msg.sender] += msg.value;
         contratcBalance[address(this)] += msg.value;
 

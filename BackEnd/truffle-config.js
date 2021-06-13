@@ -39,13 +39,9 @@
 // }
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-const infuraKey = "PASTE YOUR INFURA KEY HERE";
+const infuraKey = "030639b27ea143e5aabe8efa6e6f057d";
 
 const fs = require('fs');
-
-//MAKE A FILE CALLED ".Secret" IN THE BACKEND DIRECTORY AND PASTE IN YOUR SEED PHRASE FROM
-//YOUR METAMASK WritableStreamDefaultWriter. YOU CAN VIEW YOUR SEED PHRASE IN THE ADVANCED
-//SETTING OPTIONS
 const mnemonic = fs.readFileSync(".secret").toString().trim();
 // const privateKey = "c6580f5872c277810a55d92c2ae874ec1f5db288f0944fe836b031d05b6c306b"
 
@@ -85,7 +81,7 @@ module.exports = {
     // NB: It's important to wrap the provider as a function.
     
     kovan: {
-      provider: () => new HDWalletProvider(mnemonic, `https://kovan.infura.io/v3/PASTE YOU INFURA PROJECT ID HERE`),
+      provider: () => new HDWalletProvider(mnemonic, `https://kovan.infura.io/v3/7c328fa0092c43a6b22073cdb477c58b`),
       network_id: 42,       // Ropsten's id
       gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2, 
@@ -122,7 +118,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-       version: "0.6.6",    // Fetch exact version from solc-bin (default: truffle's version)
+       version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {

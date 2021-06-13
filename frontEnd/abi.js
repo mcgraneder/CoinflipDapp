@@ -1,6 +1,44 @@
 var abi = [
   {
+    "constant": true,
     "inputs": [],
+    "name": "RandomResult",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "playerOracleqQuerey",
+    "outputs": [
+      {
+        "name": "id",
+        "type": "bytes32"
+      },
+      {
+        "name": "playerAddress",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -8,127 +46,12 @@ var abi = [
     "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      },
-      {
         "indexed": false,
-        "internalType": "bool",
-        "name": "won",
-        "type": "bool"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amountWon",
-        "type": "uint256"
-      }
-    ],
-    "name": "FlipResult",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      }
-    ],
-    "name": "LogNewProvableQuery",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "player",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newBalance",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldBalance",
-        "type": "uint256"
-      }
-    ],
-    "name": "balanceUpdated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "player_address",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "betId",
-        "type": "uint256"
-      }
-    ],
-    "name": "betInitialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "playerAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "betId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "hasWon",
-        "type": "bool"
-      }
-    ],
-    "name": "coinFlipped",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "depositedBy",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       }
@@ -141,26 +64,11 @@ var abi = [
     "inputs": [
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "randomNumber",
-        "type": "uint256"
-      }
-    ],
-    "name": "generatedRandomNumber",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
         "name": "withdrawedBy",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       }
@@ -169,304 +77,400 @@ var abi = [
     "type": "event"
   },
   {
-    "inputs": [],
-    "name": "RandomResult",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "",
+        "indexed": false,
+        "name": "player_address",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "betId",
         "type": "uint256"
       }
     ],
-    "name": "playerOracleqQuerey",
-    "outputs": [
+    "name": "betInitialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "id",
-        "type": "bytes32"
+        "indexed": false,
+        "name": "playerAddress",
+        "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "playerAddress",
+        "indexed": false,
+        "name": "betId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "hasWon",
+        "type": "bool"
+      }
+    ],
+    "name": "coinFlipped",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "won",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "name": "amountWon",
+        "type": "uint256"
+      }
+    ],
+    "name": "FlipResult",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "player",
         "type": "address"
       }
     ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "name": "LogNewProvableQuery",
+    "type": "event"
   },
   {
+    "anonymous": false,
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "requestId",
-        "type": "bytes32"
+        "indexed": false,
+        "name": "player",
+        "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "randomness",
+        "indexed": false,
+        "name": "newBalance",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "oldBalance",
         "type": "uint256"
       }
     ],
-    "name": "rawFulfillRandomness",
+    "name": "balanceUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "randomNumber",
+        "type": "uint256"
+      }
+    ],
+    "name": "generatedRandomNumber",
+    "type": "event"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_myid",
+        "type": "bytes32"
+      },
+      {
+        "name": "_result",
+        "type": "string"
+      }
+    ],
+    "name": "__callback",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
-        "internalType": "uint256",
+        "name": "_queryId",
+        "type": "bytes32"
+      },
+      {
+        "name": "_result",
+        "type": "string"
+      },
+      {
+        "name": "_proof",
+        "type": "bytes"
+      }
+    ],
+    "name": "__callback",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "_betType",
         "type": "uint256"
       }
     ],
     "name": "setBet",
     "outputs": [],
+    "payable": true,
     "stateMutability": "payable",
-    "type": "function",
-    "payable": true
+    "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "flipCoin",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "settleBet",
     "outputs": [],
+    "payable": true,
     "stateMutability": "payable",
-    "type": "function",
-    "payable": true
+    "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "withdraw",
     "outputs": [],
+    "payable": true,
     "stateMutability": "payable",
-    "type": "function",
-    "payable": true
+    "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "deposit",
     "outputs": [],
+    "payable": true,
     "stateMutability": "payable",
-    "type": "function",
-    "payable": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "Flipped",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "notWaiting",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "canCelBet",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getBetType",
     "outputs": [
       {
-        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getRandomNumber",
     "outputs": [
       {
-        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getBetStatus",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getQueryLog",
     "outputs": [
       {
         "components": [
           {
-            "internalType": "bytes32",
             "name": "id",
             "type": "bytes32"
           },
           {
-            "internalType": "address",
             "name": "playerAddress",
             "type": "address"
           }
         ],
-        "internalType": "struct CoinFlip.OracleQuery[]",
         "name": "",
         "type": "tuple[]"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "hasWon",
     "outputs": [
       {
-        "internalType": "bool",
         "name": "",
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getPlayer",
     "outputs": [
       {
-        "internalType": "address",
         "name": "",
         "type": "address"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getContratcBalance",
     "outputs": [
       {
-        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getCurrentBet",
     "outputs": [
       {
-        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getActiveBets",
     "outputs": [
       {
         "components": [
           {
-            "internalType": "address",
             "name": "playerAddress",
             "type": "address"
           },
           {
-            "internalType": "uint256",
             "name": "betAmount",
             "type": "uint256"
           },
           {
-            "internalType": "bool",
             "name": "hasWon",
             "type": "bool"
           },
           {
-            "internalType": "string",
             "name": "bet_type",
             "type": "string"
           },
           {
-            "internalType": "uint256",
             "name": "id",
             "type": "uint256"
           }
         ],
-        "internalType": "struct CoinFlip.Player[]",
         "name": "",
         "type": "tuple[]"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   }
 ]
